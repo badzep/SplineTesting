@@ -13,6 +13,7 @@ constexpr float PATH_DELTA = 1e-2; // time step size when drawing path
 
 constexpr float DRAG_DISTANCE = 7.0f;
 
-constexpr float BASE_CAMERA_MOVEMENT_SPEED = 200;
-constexpr float SPRINT_CAMERA_MOVEMENT_SPEED = BASE_CAMERA_MOVEMENT_SPEED * 5;
-constexpr float CAMERA_ZOOM_SPEED = 1.0f;
+constexpr float BASE_CAMERA_MOVEMENT_SPEED = 40;
+constexpr float SPRINT_CAMERA_MOVEMENT_SPEED = BASE_CAMERA_MOVEMENT_SPEED * 2.5f;
+constexpr float BASE_CAMERA_ZOOM_SPEED = 4.0f;
+constexpr float SPRINT_CAMERA_ZOOM_SPEED = BASE_CAMERA_ZOOM_SPEED * 5.0f;
