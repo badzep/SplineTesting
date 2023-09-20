@@ -10,6 +10,8 @@ public:
 
     Vec(const T x, const T y): x(x), y(y) {    }
 
+    explicit Vec(const Vector2 vector): x(vector.x), y(vector.y) {    }
+
     ~Vec() = default;
 
     [[nodiscard]] Vec<T> add(const Vec<T> other_vector) const {
@@ -109,6 +111,10 @@ public:
     void round_in_place() {
         this->x = std::round(x);
         this->y = std::round(y);
+    }
+
+    T get_distance_to(Vec<T> other_vector) {
+        return std::sqrt(std::pow(this->x - other_vector.x, 2) + std::pow(this->y - other_vector.y, 2));
     }
 
     [[nodiscard]] Vector2 to_raylib() const {
