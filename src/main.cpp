@@ -1,26 +1,28 @@
+#include <fstream>
+#include <iostream>
 #include <raylib.h>
 
 
 #include <format>
+#include <filesystem>
 
 
 #include "Hermite.hpp"
 #include "Constants.hpp"
 
-
-
 void drag_points(HermiteSpline &spline, Camera2D &camera) {
     Vec<float> clicked_position = Vec<float>(GetScreenToWorld2D(GetMousePosition(), camera));
     for (HermitePoint &spline_point: spline.get_points()) {
-        if (spline_point.position.get_distance_to(clicked_position.subtract(Vec<float>(GetMouseDelta()))) <= DRAG_DISTANCE) {
-            spline_point.position.x = clicked_position.x;
-            spline_point.position.y = clicked_position.y;
+        if (spline_point.get_velocity_end_point().get_distance_to(clicked_position.subtract(Vec<float>(GetMouseDelta()).divide(camera.zoom))) <= DRAG_DISTANCE) { // camera.zoom
+            spline_point.velocity = clicked_position.subtract(spline_point.position).divide(VELOCITY_DISPLAY_MULTIPLIER);
             return;
         }
     }
+
     for (HermitePoint &spline_point: spline.get_points()) {
-        if (spline_point.get_velocity_end_point().get_distance_to(clicked_position.subtract(Vec<float>(GetMouseDelta()))) <= DRAG_DISTANCE) {
-            spline_point.velocity = clicked_position.subtract(spline_point.position).divide(VELOCITY_DISPLAY_MULTIPLIER);
+        if (spline_point.position.get_distance_to(clicked_position.subtract(Vec<float>(GetMouseDelta()).divide(camera.zoom))) <= DRAG_DISTANCE) { // / camera.zoom
+            spline_point.position.x = clicked_position.x;
+            spline_point.position.y = clicked_position.y;
             return;
         }
     }
@@ -31,22 +33,57 @@ int main() {
     InitWindow((int) WINDOW.x, (int) WINDOW.y, "Hermite Spline Test");
     SetTargetFPS(200);
 
+    Camera2D camera = {};
     bool paused = false;
 
     HermiteSpline spline;
-    Camera2D camera = {};
     
-    spline.add_point({{-30, 30},
-                      {0,    -200}});
-    spline.add_point({{-15, -10},
-                      {0,    50}});
-    spline.add_point({{10,  -10},
-                      {-30, 10}});
-    spline.add_point({{20, -10},
-                      {0,   50}});
-    spline.add_point({{0, 0},
-                      {0, 0}});
+    if (!std::filesystem::exists(POINTS_PATH)) {
+        std::ofstream _file = std::ofstream();
+        _file.open(POINTS_PATH, std::ios::out);
+        _file << 0.0f;
+        _file << "\n";
+        _file << 0.0f;
+        _file << "\n";
+        _file << 0.0f;
+        _file << "\n";
+        _file << 50.0f;
+        _file << "\n";
+        _file << "\n";
+        _file << 5.0f;
+        _file << "\n";
+        _file << 5.0f;
+        _file << "\n";
+        _file << 50.0f;
+        _file << "\n";
+        _file << 50.0f;
+        _file.close();
+    }
 
+    std::ifstream file = std::ifstream();
+    file.open(POINTS_PATH, std::ios::in);
+    int x = 0;
+    while (true) {
+        float position_x;
+        float position_y;
+        float velocity_x;
+        float velocity_y;
+        file >> position_x;
+        file >> position_y;
+        file >> velocity_x;
+        file >> velocity_y;
+        std::cout << position_x << "\n";
+        std::cout << position_y << "\n";
+        std::cout << velocity_x << "\n";
+        std::cout << velocity_y << "\n";
+        spline.add_point({{position_x, position_y},{velocity_x, velocity_y}});
+        if (file.eof()) {
+            break;
+        }
+    }
+
+    file.close();
+    
     camera.zoom = 10.0f;
     camera.offset = {(float) WINDOW.x / 2.0f, (float) WINDOW.y / 2.0f}; // center camera
 
@@ -123,8 +160,8 @@ int main() {
                     }
                 }
                 for (HermitePoint &spline_point: spline.get_points()) {
-                    DrawLineV(spline_point.position.to_raylib(), spline_point.position.add(spline_point.velocity.multiply(VELOCITY_DISPLAY_MULTIPLIER)).to_raylib(), BLUE);
-                    DrawCircleV(spline_point.get_velocity_end_point().to_raylib(), 2.0f / camera.zoom, PATH_COLOR);
+                    DrawLineV(spline_point.position.to_raylib(), spline_point.position.add(spline_point.velocity.multiply(VELOCITY_DISPLAY_MULTIPLIER)).to_raylib(), RED);
+                    DrawCircleV(spline_point.get_velocity_end_point().to_raylib(), 2.0f / camera.zoom, RED);
                     DrawCircleV(spline_point.position.to_raylib(), 2.5f / camera.zoom, PATH_COLOR);
                 }
 
