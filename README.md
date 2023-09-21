@@ -11,6 +11,8 @@ Red = above max speed and acceleration
 Click and drag to move points
 WASD for camera movement
 QE zoom in and out respectively
-Shift increases move and zoom speed
+Up arrow increases spline duration
+Down arrow decreases spline duration
+Shift increases the speed all controls
 
 *Note: all distances are in feet and times in seconds

@@ -81,11 +81,13 @@ int main() {
             SetTargetFPS(10000);
         }
 
-        float camera_speed = BASE_CAMERA_MOVEMENT_SPEED / (float) GetFPS();
-        float zoom_speed = BASE_CAMERA_ZOOM_SPEED / (float) GetFPS();
+        float camera_speed = BASE_CAMERA_MOVEMENT_SPEED * GetFrameTime();
+        float zoom_speed = BASE_CAMERA_ZOOM_SPEED * GetFrameTime();
+        float duration_edit_speed = BASE_DURATION_EDIT_MULTIPLIER * GetFrameTime();
         if (IsKeyDown(KEY_LEFT_SHIFT)) {
-            camera_speed = SPRINT_CAMERA_MOVEMENT_SPEED / (float) GetFPS();
-            zoom_speed = SPRINT_CAMERA_ZOOM_SPEED / (float) GetFPS();
+            camera_speed = SPRINT_CAMERA_MOVEMENT_SPEED * GetFrameTime();
+            zoom_speed = SPRINT_CAMERA_ZOOM_SPEED * GetFrameTime();
+            duration_edit_speed = SPRINT_DURATION_EDIT_MULTIPLIER * GetFrameTime();
         }
 
         if (IsKeyDown(KEY_E)) {
@@ -114,12 +116,12 @@ int main() {
         }
 
         if (IsKeyDown(KEY_UP)) {
-            total_duration += DURATION_EDIT_MULTIPLIER * GetFrameTime();
+            total_duration += duration_edit_speed;
             reset();
         }
 
         if (IsKeyDown(KEY_DOWN)) {
-            total_duration -= DURATION_EDIT_MULTIPLIER * GetFrameTime();
+            total_duration -= duration_edit_speed;
             reset();
         }
 
