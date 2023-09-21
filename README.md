@@ -12,3 +12,5 @@ Click and drag to move points
 WASD for camera movement
 QE zoom in and out respectively
 Shift increases move and zoom speed
+
+*Note: all distances are in feet and times in seconds

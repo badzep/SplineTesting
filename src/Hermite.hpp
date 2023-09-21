@@ -17,14 +17,6 @@ public:
     Vec<float> acceleration;
 
     Motion(const Vec<float> position, const Vec<float> velocity, const Vec<float> acceleration): position(position), velocity(velocity), acceleration(acceleration) {}
-
-    Vec<float> get_velocity_end_point() const {
-        return this->position.add(this->velocity.multiply(VELOCITY_DISPLAY_MULTIPLIER));
-    }
-
-    Vec<float> get_acceleration_end_point() const {
-        return this->position.add(this->velocity.multiply(VELOCITY_DISPLAY_MULTIPLIER)).add(this->acceleration.multiply(ACCELERATION_DISPLAY_MULTIPLIER));
-    }
 };
 
 class HermitePoint {

@@ -23,7 +23,7 @@ void reset() {
 void drag_points(HermiteSpline &spline, Camera2D &camera) {
     Vec<float> clicked_position = Vec<float>(GetScreenToWorld2D(GetMousePosition(), camera));
     for (HermitePoint &spline_point: spline.get_points()) {
-        if (spline_point.position.add(spline_point.velocity.multiply(spline.get_time_scale()).multiply(VELOCITY_DISPLAY_MULTIPLIER)).get_distance_to(clicked_position.subtract(Vec<float>(GetMouseDelta()).divide(camera.zoom))) <= DRAG_DISTANCE / camera.zoom) {
+        if (spline_point.position.add(spline_point.velocity.multiply(spline.get_time_scale()).multiply(VELOCITY_DISPLAY_MULTIPLIER)).get_distance_to(clicked_position.subtract(Vec<float>(GetMouseDelta()).divide(camera.zoom))) <= GRAB_DISTANCE / camera.zoom) {
             spline_point.velocity = clicked_position.subtract(spline_point.position).divide(VELOCITY_DISPLAY_MULTIPLIER).divide(spline.get_time_scale());
             reset();
             return;
@@ -31,7 +31,7 @@ void drag_points(HermiteSpline &spline, Camera2D &camera) {
     }
 
     for (HermitePoint &spline_point: spline.get_points()) {
-        if (spline_point.position.get_distance_to(clicked_position.subtract(Vec<float>(GetMouseDelta()).divide(camera.zoom))) <= DRAG_DISTANCE / camera.zoom) { // 
+        if (spline_point.position.get_distance_to(clicked_position.subtract(Vec<float>(GetMouseDelta()).divide(camera.zoom))) <= GRAB_DISTANCE / camera.zoom) { // 
             spline_point.position.x = clicked_position.x;
             spline_point.position.y = clicked_position.y;
             reset();
@@ -122,11 +122,9 @@ int main() {
         BeginDrawing();
             BeginMode2D(camera);
                 ClearBackground(BLACK);
-
-                int grid_size = 6; // field is 12 by 12 ft
-                for (int i = -grid_size; i <= grid_size; i++) {
-                    DrawLineV({-(float) grid_size, (float) i}, {(float)grid_size, (float) i}, {255,255,255,175});
-                    DrawLineV({(float) i, -(float) grid_size}, {(float) i, (float) grid_size}, {255,255,255,175});
+                for (int i = -GRID_SIZE; i <= GRID_SIZE; i++) {
+                    DrawLineV({-(float) GRID_SIZE, (float) i}, {(float)GRID_SIZE, (float) i}, {255,255,255,175});
+                    DrawLineV({(float) i, -(float) GRID_SIZE}, {(float) i, (float) GRID_SIZE}, {255,255,255,175});
                 }
                 
                 float path_index = 0;
@@ -163,8 +161,9 @@ int main() {
                 motion.velocity.multiply_in_place(spline.get_time_scale());
                 motion.acceleration.multiply_in_place(spline.get_time_scale());
                 DrawPoly(motion.position.to_raylib(), 4, ROBOT_SIZE / 2.0f, (motion.velocity.atan2() / PI) * 180 + 45, {200, 10, 200, 175});
-                DrawLineEx(motion.position.to_raylib(), motion.get_velocity_end_point().to_raylib(), 0.025f, BLUE);
-                DrawLineEx(motion.get_velocity_end_point().to_raylib(), motion.get_acceleration_end_point().to_raylib(), 0.025, GREEN);
+
+                DrawLineEx(motion.position.to_raylib(), motion.position.add(motion.velocity.multiply(spline.get_time_scale()).multiply(VELOCITY_DISPLAY_MULTIPLIER)).to_raylib(), 0.025f, BLUE);
+                DrawLineEx(motion.position.add(motion.velocity.multiply(spline.get_time_scale()).multiply(VELOCITY_DISPLAY_MULTIPLIER)).to_raylib(),motion.position.add(motion.velocity.multiply(spline.get_time_scale()).multiply(VELOCITY_DISPLAY_MULTIPLIER)).add(motion.acceleration.multiply(spline.get_time_scale()).multiply(ACCELERATION_DISPLAY_MULTIPLIER)).to_raylib(), 0.025, GREEN);
 
             EndMode2D();
             DrawText(std::format("Time {0:.2f} / {1:.2f}", simulation_time, spline.index_to_time(spline.get_index_total())).c_str(), 20, 20, 20, WHITE);
