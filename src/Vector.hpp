@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <raylib.h>
+#include <string>
 
 template<typename T> class Vec {
 public:
@@ -117,14 +118,28 @@ public:
         return std::sqrt(std::pow(this->x - other_vector.x, 2) + std::pow(this->y - other_vector.y, 2));
     }
 
-    [[nodiscard]] float atan2() {
+    [[nodiscard]] T magnitude() {
+        return std::sqrt(this->x * this->x + this->y * this->y);
+    }
+
+    [[nodiscard]] T atan2() {
         return std::atan2(this->y, this->x);
     }
 
-    // [[nodiscard]] Vec<T> polar_offset(const T magnitude, const T angle) const {
-    //     return {this->x + std::cos(angle) * magnitude, this->position.y + std::sin(angle) * magnitude};
-    // }
+    [[nodiscard]] Vec<T> normalize() {
+        // const float angle = this->atan2();
+        // return {std::cos(angle), std::sin(angle)};
+        return this->divide(this->magnitude());
+    }
 
+    void normalize_in_place() {
+        this->divide_in_place(this->magnitude());
+    }
+    
+    [[nodiscard]] std::string to_string() const {
+        return std::string("<") + std::to_string(this->x) + std::string(", ") + std::to_string(this->y) + std::string(">");
+    }
+    
     [[nodiscard]] Vector2 to_raylib() const {
         return {this->x, this->y};
     }

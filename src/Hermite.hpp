@@ -2,6 +2,7 @@
 
 
 #include <cassert>
+#include <cmath>
 #include <vector>
 
 
@@ -51,6 +52,22 @@ public:
 
     void add_point(const HermitePoint end_point) {
         this->points.push_back(end_point);
+    }
+
+    float get_index_total() {
+        return (int)(this->get_point_count() - 1);
+    }
+
+    float index_to_time(const float index) {
+        return (index / this->get_index_total()) * DURATION;
+    }
+
+    float time_to_index(const float time) {
+        return (time / DURATION) * this->get_index_total();
+    }
+
+    float get_time_scale() {
+        return this->get_index_total() / DURATION;
     }
 
     Vec<float> get_position_at(const float index) {
