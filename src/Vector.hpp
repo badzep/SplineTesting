@@ -3,6 +3,7 @@
 #include <cmath>
 #include <raylib.h>
 #include <string>
+#include <format>
 
 template<typename T> class Vec {
 public:
@@ -138,6 +139,9 @@ public:
     
     [[nodiscard]] std::string to_string() const {
         return std::string("<") + std::to_string(this->x) + std::string(", ") + std::to_string(this->y) + std::string(">");
+    }
+    [[nodiscard]] std::string to_string_2f() const {
+        return std::format("<{0:.2f}, {0:.2f}>", this->x, this->y);
     }
     
     [[nodiscard]] Vector2 to_raylib() const {

@@ -4,8 +4,9 @@
 #include <raylib.h>
 #include <string>
 
+static float total_duration = 6.0f;
+constexpr float DURATION_EDIT_MULTIPLIER = 0.75f;
 
-constexpr float DURATION = 6.0f;
 constexpr Vector2 WINDOW = {1000, 1000};
 constexpr float VELOCITY_DISPLAY_MULTIPLIER = 0.25f;
 constexpr float ACCELERATION_DISPLAY_MULTIPLIER = 0.025f;

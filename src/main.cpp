@@ -11,7 +11,6 @@
 #include "Vector.hpp"
 
 
-
 float simulation_time = 0;
 float current_position = 0;
 
@@ -114,6 +113,16 @@ int main() {
             camera.target.x += camera_speed / camera.zoom;
         }
 
+        if (IsKeyDown(KEY_UP)) {
+            total_duration += DURATION_EDIT_MULTIPLIER * GetFrameTime();
+            reset();
+        }
+
+        if (IsKeyDown(KEY_DOWN)) {
+            total_duration -= DURATION_EDIT_MULTIPLIER * GetFrameTime();
+            reset();
+        }
+
         if (IsMouseButtonDown(MOUSE_LEFT_BUTTON)) {
             drag_points(spline,camera);
         }
@@ -128,6 +137,8 @@ int main() {
                 }
                 
                 float path_index = 0;
+                bool does_overspeed = false;
+                bool does_over_acceleration = false;
                 while (true) {
                     Motion path_motion = spline.get_point_at(path_index);
                     path_motion.velocity.multiply_in_place(spline.get_time_scale());
@@ -135,7 +146,13 @@ int main() {
                     path_length += path_motion.position.get_distance_to(spline.get_position_at(path_index + PATH_INDEX_DELTA));
                     
                     bool overspeed = path_motion.velocity.magnitude() > MAX_VELOCITY;
+                    if (overspeed) {
+                        does_overspeed = true;
+                    }
                     bool over_acceleration = path_motion.acceleration.magnitude() > MAX_ACCELERATION;
+                    if (over_acceleration) {
+                        does_over_acceleration = true;
+                    }
                     if (overspeed and over_acceleration) {
                         DrawLineEx(spline.get_position_at(path_index).to_raylib(), spline.get_position_at(path_index + PATH_INDEX_DELTA).to_raylib(), 0.05f, RED);
                     } else if (over_acceleration) {
@@ -164,12 +181,32 @@ int main() {
 
                 DrawLineEx(motion.position.to_raylib(), motion.position.add(motion.velocity.multiply(spline.get_time_scale()).multiply(VELOCITY_DISPLAY_MULTIPLIER)).to_raylib(), 0.025f, BLUE);
                 DrawLineEx(motion.position.add(motion.velocity.multiply(spline.get_time_scale()).multiply(VELOCITY_DISPLAY_MULTIPLIER)).to_raylib(),motion.position.add(motion.velocity.multiply(spline.get_time_scale()).multiply(VELOCITY_DISPLAY_MULTIPLIER)).add(motion.acceleration.multiply(spline.get_time_scale()).multiply(ACCELERATION_DISPLAY_MULTIPLIER)).to_raylib(), 0.025, GREEN);
-
             EndMode2D();
+
+            for (HermitePoint &spline_point: spline.get_points()) {
+                Vector2 position_text_position = GetWorldToScreen2D(spline_point.position.to_raylib(), camera);
+                position_text_position.x += 10;
+                position_text_position.y += 10;
+                DrawTextEx(GetFontDefault(), spline_point.position.to_string_2f().c_str(), position_text_position, 15.0f, 1.0f, GREEN);
+                Vector2 velocity_text_position = GetWorldToScreen2D(spline_point.position.add(spline_point.velocity.multiply(spline.get_time_scale()).multiply(VELOCITY_DISPLAY_MULTIPLIER)).to_raylib(), camera);
+                velocity_text_position.x += 10;
+                velocity_text_position.y -= 20;
+                DrawTextEx(GetFontDefault(), std::format("{0:.2f} ft/s, {1:.2f} rad", spline_point.velocity.magnitude() * spline.get_time_scale(), spline_point.velocity.atan2()).c_str(), velocity_text_position, 15.0f, 1.0f, BLUE);
+                velocity_text_position.y -= 20;
+                DrawTextEx(GetFontDefault(), spline_point.velocity.multiply(spline.get_time_scale()).to_string_2f().c_str(), velocity_text_position, 15.0f, 1.0f, BLUE);
+            }
+
             DrawText(std::format("Time {0:.2f} / {1:.2f}", simulation_time, spline.index_to_time(spline.get_index_total())).c_str(), 20, 20, 20, WHITE);
             DrawText(std::format("Position {0:.2f} / {1:.2f}", current_position, path_length).c_str(), 20, 40, 20, WHITE);
             DrawText(std::format("Velocity {0:.2f} / {1:.2f}", motion.velocity.magnitude(), MAX_VELOCITY).c_str(), 20, 60, 20, WHITE);
             DrawText(std::format("Acceleration {0:.2f} / {1:.2f}", motion.acceleration.magnitude(), MAX_ACCELERATION).c_str(), 20, 80, 20, WHITE);
+
+            if (does_overspeed) {
+                DrawText("Warning: Path Exceeds Speed Constraint", 20, WINDOW.y - 60, 20, YELLOW);
+            }
+            if (does_over_acceleration) {
+                DrawText("Warning: Path Exceeds Acceleration Constraint", 20, WINDOW.y - 40, 20, ORANGE);
+            }
         EndDrawing();
         
         if (!paused) {

@@ -51,15 +51,15 @@ public:
     }
 
     float index_to_time(const float index) {
-        return (index / this->get_index_total()) * DURATION;
+        return (index / this->get_index_total()) * total_duration;
     }
 
     float time_to_index(const float time) {
-        return (time / DURATION) * this->get_index_total();
+        return (time / total_duration) * this->get_index_total();
     }
 
     float get_time_scale() {
-        return this->get_index_total() / DURATION;
+        return this->get_index_total() / total_duration;
     }
 
     Vec<float> get_position_at(const float index) {
