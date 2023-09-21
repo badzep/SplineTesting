@@ -5,7 +5,7 @@
 #include <string>
 
 
-constexpr float DURATION = 1.34f;
+constexpr float DURATION = 6.0f;
 constexpr Vector2 WINDOW = {1000, 1000};
 constexpr float VELOCITY_DISPLAY_MULTIPLIER = 0.25f;
 constexpr float ACCELERATION_DISPLAY_MULTIPLIER = 0.025f;
@@ -25,6 +25,5 @@ constexpr float ROBOT_SIZE = 15.0f / 12.0f;
 
 constexpr std::string POINTS_PATH = "Points.txt";
 
-constexpr float MAX_VELOCITY = 4.0f;
+constexpr float MAX_VELOCITY = 5.0f;
 constexpr float MAX_ACCELERATION = 20.0f;
-constexpr float MAX_DECELERATION = 25.0f;
