@@ -117,6 +117,14 @@ public:
         return std::sqrt(std::pow(this->x - other_vector.x, 2) + std::pow(this->y - other_vector.y, 2));
     }
 
+    [[nodiscard]] float atan2() {
+        return std::atan2(this->y, this->x);
+    }
+
+    // [[nodiscard]] Vec<T> polar_offset(const T magnitude, const T angle) const {
+    //     return {this->x + std::cos(angle) * magnitude, this->position.y + std::sin(angle) * magnitude};
+    // }
+
     [[nodiscard]] Vector2 to_raylib() const {
         return {this->x, this->y};
     }

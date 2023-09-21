@@ -9,6 +9,8 @@
 
 #include "Hermite.hpp"
 #include "Constants.hpp"
+#include "MotionProfile.hpp"
+
 
 void drag_points(HermiteSpline &spline, Camera2D &camera) {
     Vec<float> clicked_position = Vec<float>(GetScreenToWorld2D(GetMousePosition(), camera));
@@ -141,7 +143,6 @@ int main() {
             camera.zoom = std::max(0.01f, camera.zoom);
         }
 
-        const Motion point = spline.get_point_at(time);
         if (IsMouseButtonDown(MOUSE_LEFT_BUTTON)) {
             drag_points(spline,camera);
         }
@@ -165,17 +166,40 @@ int main() {
                     DrawCircleV(spline_point.position.to_raylib(), 2.5f / camera.zoom, PATH_COLOR);
                 }
 
-                DrawLineV(point.position.to_raylib(), point.get_velocity_end_point().to_raylib(), RED);
-                DrawLineV(point.get_velocity_end_point().to_raylib(), point.get_acceleration_end_point().to_raylib(), ORANGE);
-                DrawCircleV(point.position.to_raylib(), 5.0f / camera.zoom, GREEN);
-            EndMode2D();
-            DrawText(std::format("Total path length {} m", path_length).c_str(), 20, 20, 20, WHITE);
-        EndDrawing();
+                AsymmetricalProfile profile = AsymmetricalProfile(MAX_ACCELERATION, MAX_DECELERATION, MAX_VELOCITY, path_length);
+                MotionState state = profile.getState(time);
+                
+                float current_index = 0;
+                float current_position = 0;
+                while (true) {
+                    current_position += spline.get_position_at(current_index).get_distance_to(spline.get_position_at(current_index + INDEX_DELTA));
+                    current_index += INDEX_DELTA;
+                    if (current_position >= state.x) {
+                        break;
+                    }
+                }
+                Vec<float> position = spline.get_position_at(current_index);
+                Motion point = spline.get_point_at(current_index);
+                const float velocity_angle = point.velocity.atan2();
+                Vec<float> velocity = {std::cos(velocity_angle) * state.v, std::sin(velocity_angle) * state.v};
+                Vec<float> velocity_position = position.add(velocity);
+                const float acceleration_angle = point.acceleration.atan2();
+                Vec<float> acceleration = {std::cos(acceleration_angle) * state.a, std::sin(acceleration_angle) * state.a};
+                Vec<float> acceleration_position = velocity_position.add(acceleration); 
+                DrawLineV(point.position.to_raylib(), velocity_position.to_raylib(), RED);
+                DrawLineV(velocity_position.to_raylib(), acceleration_position.to_raylib(), ORANGE);
+                DrawCircleV(position.to_raylib(), 5.0f / camera.zoom, PURPLE);
 
+            EndMode2D();
+            DrawText(std::format("Position {0:.2f} / {1:.2f}", state.x, path_length).c_str(), 20, 20, 20, WHITE);
+            DrawText(std::format("Velocity {0:.2f} / {1:.2f}", state.v, MAX_VELOCITY).c_str(), 20, 40, 20, WHITE);
+            DrawText(std::format("Acceleration {0:.2f} / [{1:.2f}, {2:.2f}]", state.a, -MAX_DECELERATION, MAX_ACCELERATION).c_str(), 20, 60, 20, WHITE);
+        EndDrawing();
+        
         if (!paused) {
             time += TIME_DELTA;
-            if (time > (float) spline.get_point_count() - 1.0f) {
-                time -= ((float) spline.get_point_count() - 1.0f);
+            if (current_position > path_length) {
+                time = 0;
             }
         }
     }
