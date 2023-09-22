@@ -188,13 +188,13 @@ int main() {
             for (HermitePoint &spline_point: spline.get_points()) {
                 Vector2 position_text_position = GetWorldToScreen2D(spline_point.position.to_raylib(), camera);
                 position_text_position.x += 10;
-                position_text_position.y += 10;
+                position_text_position.y -= 10;
                 DrawTextEx(GetFontDefault(), spline_point.position.to_string_2f().c_str(), position_text_position, 15.0f, 1.0f, GREEN);
-                Vector2 velocity_text_position = GetWorldToScreen2D(spline_point.position.add(spline_point.velocity.multiply(spline.get_time_scale()).multiply(VELOCITY_DISPLAY_MULTIPLIER)).to_raylib(), camera);
+                Vector2 velocity_text_position = GetWorldToScreen2D(spline_point.position.to_raylib(), camera);
                 velocity_text_position.x += 10;
-                velocity_text_position.y -= 20;
+                velocity_text_position.y += 20;
                 DrawTextEx(GetFontDefault(), std::format("{0:.2f} ft/s, {1:.2f} rad", spline_point.velocity.magnitude() * spline.get_time_scale(), spline_point.velocity.atan2()).c_str(), velocity_text_position, 15.0f, 1.0f, BLUE);
-                velocity_text_position.y -= 20;
+                velocity_text_position.y += 20;
                 DrawTextEx(GetFontDefault(), spline_point.velocity.multiply(spline.get_time_scale()).to_string_2f().c_str(), velocity_text_position, 15.0f, 1.0f, BLUE);
             }
 
