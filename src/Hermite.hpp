@@ -73,87 +73,52 @@ public:
         return this->get_index_total() / this->total_duration;
     }
 
-    // doesnt work, forgot integrals are signed lmao
-    // Vec<float> get_distance_at(const float index) {
-    //     assert(this->points.size() > 1);
-
-    //     unsigned int start_index = std::floor(index);
-
-    //     const HermitePoint start_point = this->points[start_index];
-    //     const HermitePoint end_point = this->points[start_index + 1];
-
-    //     const float region_index = index - (float) start_index;
-
-    //     const float index_squared = region_index * region_index;
-    //     const float index_cubed = index_squared * region_index;
-    //     const float index_quad = index_cubed * region_index;
-
-    //     const float start_position_coefficient_integral = (index_quad / 2.0f - index_cubed + region_index);
-    //     const float start_velocity_coefficient_integral = (index_quad / 4.0f - 2.0f / 3.0f * index_cubed  + index_squared / 2.0f);
-    //     const float end_position_coefficient_integral = (-index_quad / 2.0f + index_cubed);
-    //     const float end_velocity_coefficient_integral = (index_quad / 4.0f - index_cubed / 3.0f);
-
-    //     return {start_position_coefficient_integral * start_point.position.x + start_velocity_coefficient_integral * start_point.velocity.x + end_position_coefficient_integral * end_point.position.x + end_velocity_coefficient_integral * end_point.velocity.x,
-    //             start_position_coefficient_integral * start_point.position.y + start_velocity_coefficient_integral * start_point.velocity.y + end_position_coefficient_integral * end_point.position.y + end_velocity_coefficient_integral * end_point.velocity.y};
-    // }
-
     Vec<float> get_position_at(const float index) {
-        assert(this->points.size() > 1);
-
         unsigned int start_index = std::floor(index);
 
         const HermitePoint start_point = this->points[start_index];
         const HermitePoint end_point = this->points[start_index + 1];
 
         const float region_index = index - (float) start_index;
-
         const float index_squared = region_index * region_index;
         const float index_cubed = index_squared * region_index;
 
-        const float start_position_coefficient = (2.0f * index_cubed - 3.0f * index_squared + 1.0f);
-        const float start_velocity_coefficient = (index_cubed - 2.0f * index_squared + region_index);
-        const float end_position_coefficient = (-2.0f * index_cubed + 3.0f * index_squared);
-        const float end_velocity_coefficient = (index_cubed - index_squared);
-        return {start_position_coefficient * start_point.position.x + start_velocity_coefficient * start_point.velocity.x + end_position_coefficient * end_point.position.x + end_velocity_coefficient * end_point.velocity.x,
-                start_position_coefficient * start_point.position.y + start_velocity_coefficient * start_point.velocity.y + end_position_coefficient * end_point.position.y + end_velocity_coefficient * end_point.velocity.y};
+        return start_point.position * (2.0f * index_cubed - 3.0f * index_squared + 1.0f) 
+            + start_point.velocity * (index_cubed - 2.0f * index_squared + region_index)
+            + end_point.position * (-2.0f * index_cubed + 3.0f * index_squared)
+            + end_point.velocity * (index_cubed - index_squared);
     }
 
-    Motion get_point_at(const float index) {
-        assert(this->points.size() > 1);
-
+    Motion get_motion_at(const float index) {
         unsigned int start_index = std::floor(index);
 
         const HermitePoint start_point = this->points[start_index];
         const HermitePoint end_point = this->points[start_index + 1];
 
         const float region_index = index - (float) start_index;
-
         const float index_squared = region_index * region_index;
         const float index_cubed = index_squared * region_index;
 
-        const float start_position_coefficient = (2.0f * index_cubed - 3.0f * index_squared + 1.0f);
-        const float start_position_coefficient_d = (6.0f * (index_squared - region_index));
-        const float start_position_coefficient_d2 = (12.0f * region_index - 6.0f);
-
-        const float start_velocity_coefficient = (index_cubed - 2.0f * index_squared + region_index);
-        const float start_velocity_coefficient_d = (3.0f * index_squared - 4.0f * region_index + 1.0f);
-        const float start_velocity_coefficient_d2 = (6.0f * region_index - 4.0f);
-
-        const float end_position_coefficient = (-2.0f * index_cubed + 3.0f * index_squared);
-        const float end_position_coefficient_d = (6.0f * (region_index - index_squared));
-        const float end_position_coefficient_d2 = (6.0f - 12.0f * region_index);
-
-        const float end_velocity_coefficient = (index_cubed - index_squared);
-        const float end_velocity_coefficient_d = (3.0f * index_squared - 2.0f * region_index);
-        const float end_velocity_coefficient_d2 = (6.0f * region_index - 2.0f);
-
         return {
-                {start_position_coefficient * start_point.position.x + start_velocity_coefficient * start_point.velocity.x + end_position_coefficient * end_point.position.x + end_velocity_coefficient * end_point.velocity.x,
-                        start_position_coefficient * start_point.position.y + start_velocity_coefficient * start_point.velocity.y + end_position_coefficient * end_point.position.y + end_velocity_coefficient * end_point.velocity.y},
-                {start_position_coefficient_d * start_point.position.x + start_velocity_coefficient_d * start_point.velocity.x + end_position_coefficient_d * end_point.position.x + end_velocity_coefficient_d * end_point.velocity.x,
-                        start_position_coefficient_d * start_point.position.y + start_velocity_coefficient_d * start_point.velocity.y + end_position_coefficient_d * end_point.position.y + end_velocity_coefficient_d * end_point.velocity.y},
-                {start_position_coefficient_d2 * start_point.position.x + start_velocity_coefficient_d2 * start_point.velocity.x + end_position_coefficient_d2 * end_point.position.x + end_velocity_coefficient_d2 * end_point.velocity.x,
-                        start_position_coefficient_d2 * start_point.position.y + start_velocity_coefficient_d2 * start_point.velocity.y + end_position_coefficient_d2 * end_point.position.y + end_velocity_coefficient_d2 * end_point.velocity.y},
+            start_point.position * (2.0f * index_cubed - 3.0f * index_squared + 1.0f) 
+            + start_point.velocity * (index_cubed - 2.0f * index_squared + region_index)
+            + end_point.position * (-2.0f * index_cubed + 3.0f * index_squared)
+            + end_point.velocity * (index_cubed - index_squared),
+
+            start_point.position * (6.0f * (index_squared - region_index)) 
+            + start_point.velocity * (3.0f * index_squared - 4.0f * region_index + 1.0f)
+            + end_point.position * (6.0f * (region_index - index_squared))
+            + end_point.velocity * (3.0f * index_squared - 2.0f * region_index),
+
+            start_point.position * (12.0f * region_index - 6.0f) 
+            + start_point.velocity * (6.0f * region_index - 4.0f)
+            + end_point.position * (6.0f - 12.0f * region_index)
+            + end_point.velocity * (6.0f * region_index - 2.0f),
+
+            // start_point.position * (12.0f)
+            // + start_point.velocity * (6.0f)
+            // + end_point.position * (-12.0f)
+            // + end_point.velocity * (6.0f)
         };
     }
 };

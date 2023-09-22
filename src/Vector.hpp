@@ -1,11 +1,14 @@
 #pragma once
 
+
 #include <cmath>
 #include <raylib.h>
 #include <string>
 #include <format>
 
-template<typename T> class Vec {
+
+template<typename T> 
+class Vec {
 public:
     T x;
     T y;
@@ -16,6 +19,20 @@ public:
 
     ~Vec() = default;
 
+    [[nodiscard]] Vec<T> operator+(Vec<T> const other_vector) const {
+        return {this->x + other_vector.x, this->y + other_vector.y};
+    }
+    [[nodiscard]] Vec<T> operator+(const T other) const {
+        return {this->x + other, this->y + other};
+    }
+    void operator+=(Vec<T> const other_vector) {
+        this->x += other_vector.x;
+        this->y += other_vector.y;
+    }
+    void operator+=(const T other) {
+        this->x += other;
+        this->y += other;
+    }
     [[nodiscard]] Vec<T> add(const Vec<T> other_vector) const {
         return {this->x + other_vector.x, this->y + other_vector.y};
     }
@@ -31,6 +48,20 @@ public:
         this->y += other;
     }
 
+    [[nodiscard]] Vec<T> operator-(Vec<T> const other_vector) const {
+        return {this->x - other_vector.x, this->y - other_vector.y};
+    }
+    [[nodiscard]] Vec<T> operator-(const T other) const {
+        return {this->x - other, this->y - other};
+    }
+    void operator-=(Vec<T> const other_vector) {
+        this->x -= other_vector.x;
+        this->y -= other_vector.y;
+    }
+    void operator-=(const T other) {
+        this->x -= other;
+        this->y -= other;
+    }
     [[nodiscard]] Vec<T> subtract(const Vec<T> other_vector) const {
         return {this->x - other_vector.x, this->y - other_vector.y};
     }
@@ -46,6 +77,20 @@ public:
         this->y -= other;
     }
 
+    [[nodiscard]] Vec<T> operator*(Vec<T> const other_vector) const {
+        return {this->x * other_vector.x, this->y * other_vector.y};
+    }
+    [[nodiscard]] Vec<T> operator*(const T other) const {
+        return {this->x * other, this->y * other};
+    }
+    void operator*=(Vec<T> const other_vector) {
+        this->x *= other_vector.x;
+        this->y *= other_vector.y;
+    }
+    void operator*=(const T other) {
+        this->x *= other;
+        this->y *= other;
+    }
     [[nodiscard]] Vec<T> multiply(const Vec<T> other_vector) const {
         return {this->x * other_vector.x, this->y * other_vector.y};
     }
@@ -61,6 +106,20 @@ public:
         this->y *= other;
     }
 
+    [[nodiscard]] Vec<T> operator/(Vec<T> const other_vector) const {
+        return {this->x / other_vector.x, this->y / other_vector.y};
+    }
+    [[nodiscard]] Vec<T> operator/(const T other) const {
+        return {this->x / other, this->y / other};
+    }
+    void operator/=(Vec<T> const other_vector) {
+        this->x /= other_vector.x;
+        this->y /= other_vector.y;
+    }
+    void operator/=(const T other) {
+        this->x /= other;
+        this->y /= other;
+    }
     [[nodiscard]] Vec<T> divide(const Vec<T> other_vector) const {
         return {this->x / other_vector.x, this->y / other_vector.y};
     }
@@ -80,7 +139,7 @@ public:
         return {std::pow(this->x, other_vector.x), std::pow(this->y, other_vector.y)};
     }
     [[nodiscard]] Vec<T> power(const T other) const {
-        return {std::pow(this->x), std::pow(this->y)};
+        return {std::pow(this->x, other), std::pow(this->y, other)};
     }
     void power_in_place(const Vec<T> other_vector) {
         this->x = std::pow(this->x, other_vector.x);
