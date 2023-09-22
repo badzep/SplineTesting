@@ -20,7 +20,7 @@ constexpr float GRAB_DISTANCE = 10.0f;
 
 constexpr float BASE_CAMERA_MOVEMENT_SPEED = 100;
 constexpr float SPRINT_CAMERA_MOVEMENT_SPEED = BASE_CAMERA_MOVEMENT_SPEED * 2.5f;
-constexpr float BASE_CAMERA_ZOOM_SPEED = 4.0f;
+constexpr float BASE_CAMERA_ZOOM_SPEED = 1.0f;
 constexpr float SPRINT_CAMERA_ZOOM_SPEED = BASE_CAMERA_ZOOM_SPEED * 5.0f;
 
 constexpr float ROBOT_SIZE = 15.0f / 12.0f;

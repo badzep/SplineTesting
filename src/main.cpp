@@ -15,42 +15,23 @@ Camera2D camera = {};
 bool paused = false;
 float simulation_time = 0;
 float current_position = 0;
-Vec<float> test_position = {-3,-3};
+Vec<float> test_position = {0,0};
 
 void setup_spline() {
-    spline.total_duration = 5.0f;
-    spline.add_point(HermitePoint{Vec<float>{-3,-3}, Vec<float>{0,0}});
-    spline.add_point(HermitePoint{Vec<float>{-2,0}, Vec<float>{0,4}});
-    spline.add_point(HermitePoint{Vec<float>{-3,4}, Vec<float>{2,3}});
-    spline.add_point(HermitePoint{Vec<float>{0,5}, Vec<float>{4,0}});
-    spline.add_point(HermitePoint{Vec<float>{3,4}, Vec<float>{0.3,-4}});
-    spline.add_point(HermitePoint{Vec<float>{2,1}, Vec<float>{0,-4}});
-    spline.add_point(HermitePoint{Vec<float>{2,-2}, Vec<float>{0,0}});
-    
-    // spline.total_duration = 4.0f;
-    // spline.add_point(HermitePoint{Vec<float>{-3,-3}, Vec<float>{0,0}});
-    // spline.add_point(HermitePoint{Vec<float>{-2.6875,-0.7}, Vec<float>{-0.233821,3.3069}});
-    // spline.add_point(HermitePoint{Vec<float>{-2.9625,2.5125}, Vec<float>{0.601254,3.20669}});
-    // spline.add_point(HermitePoint{Vec<float>{-1.7125,4.8375}, Vec<float>{3.3069,0.066805}});
-    // spline.add_point(HermitePoint{Vec<float>{1.575,4.925}, Vec<float>{3.3,-0.0333328}});
-    // spline.add_point(HermitePoint{Vec<float>{2.6375,2.65}, Vec<float>{-0.167015,-3.3069}});
-    // spline.add_point(HermitePoint{Vec<float>{2.175,-0.625}, Vec<float>{-0.601252,-3.27349}});
-
-    // spline.total_duration = 3.91666;
-    // spline.add_point(HermitePoint{Vec<float>{-3.025, -3.9625}, Vec<float>{-0.032639, 3.23125}});
-    // spline.add_point(HermitePoint{Vec<float>{-3.1125, -0.7375}, Vec<float>{-0.0652779, 3.23125}});
-    // spline.add_point(HermitePoint{Vec<float>{-2.9875, 2.5125}, Vec<float>{0.199999, 3.23333}});
-    // spline.add_point(HermitePoint{Vec<float>{-1.6375, 4.7875}, Vec<float>{3.23125, 0.0979175}});
-    // spline.add_point(HermitePoint{Vec<float>{1.55, 4.9}, Vec<float>{3.19861, -0.620139}});
-    // spline.add_point(HermitePoint{Vec<float>{2.625, 2.5875}, Vec<float>{-0.228473, -3.23125}});
-    // spline.add_point(HermitePoint{Vec<float>{2.175, -0.625}, Vec<float>{-0.554861, -3.19861}});
-
+    spline.total_duration = 5;
+    spline.add_point(HermitePoint{Vec<float>{4.15, 2.9625}, Vec<float>{-4.16667, 7.94729e-07}});
+    spline.add_point(HermitePoint{Vec<float>{4.76837e-07, 3.025}, Vec<float>{-4.125, 0.333333}});
+    spline.add_point(HermitePoint{Vec<float>{-4.00399, 2.99458}, Vec<float>{-3.73855, -1.7945}});
+    spline.add_point(HermitePoint{Vec<float>{-4.99096, 0}, Vec<float>{0, -4.14979}});
+    spline.add_point(HermitePoint{Vec<float>{-3.97034, -2.98336}, Vec<float>{4.11241, -0.560783}});
+    spline.add_point(HermitePoint{Vec<float>{0.179451, -3.01701}, Vec<float>{4.14979, 0.186927}});
+    spline.add_point(HermitePoint{Vec<float>{3.84697, -2.80391}, Vec<float>{2.75, 0.625}});
 }
 
 void reset() {
     simulation_time = 0;
     current_position = 0;
-    test_position = {-3,-3};
+    test_position = spline.get_position_at(0);
 }
 
 void draw_grid() {
@@ -63,47 +44,51 @@ void draw_grid() {
             DrawLineV({(float) i, -(float) GRID_SIZE}, {(float) i, (float) GRID_SIZE}, {255,255,255,100});
         }
     }
+
+    Vec<float> start = {-GRID_SIZE, -GRID_SIZE};
+    Vec<float> x_up = start + Vec<float>{1,0};
+    Vec<float> y_up = start + Vec<float>{0,1};
+    DrawLineField(start, x_up, 0.025f, RED);
+    DrawLineField(start, y_up, 0.025f, GREEN);
 }
 
 void draw_field() {
     // loading zones
-    DrawLineEx({4,6}, {6,4}, TWO_INCHES, BLUE);
-    DrawLineEx({4,-6}, {6,-4}, TWO_INCHES, BLUE);
+    DrawLineField({-6,-4}, {-4,-6}, TWO_INCHES, BLUE);
+    DrawLineField({6,-4}, {4,-6}, TWO_INCHES, BLUE);
 
-    DrawLineEx({-4,6}, {-6,4}, TWO_INCHES, RED);
-    DrawLineEx({-4,-6}, {-6,-4}, TWO_INCHES, RED);
+    DrawLineField({-6,4}, {-4,6}, TWO_INCHES, RED);
+    DrawLineField({6,4}, {4,6}, TWO_INCHES, RED);
 
     // center black I thing
-    DrawLineEx({0,-4}, {0,4}, TWO_INCHES, BLACK);
-    DrawLineEx({-2,-4}, {2,-4}, TWO_INCHES, BLACK);
-    DrawLineEx({-2,4}, {2,4}, TWO_INCHES, BLACK);
+    DrawLineField({4,-0}, {-4,0}, TWO_INCHES, BLACK);
+    DrawLineField({4,2}, {4,-2}, TWO_INCHES, BLACK);
+    DrawLineField({-4,2}, {-4,-2}, TWO_INCHES, BLACK);
 
     // goal net things
-    DrawCircleV({-4,-2}, 5.0f * ONE_INCH, BLUE);
-    DrawCircleV({-4,2}, 5.0f * ONE_INCH, BLUE);
-    DrawLineEx({-4,-2}, {-4,2}, ONE_INCH, BLUE);
-    DrawLineEx({-4,-2}, {-6,-2}, ONE_INCH, BLUE);
-    DrawLineEx({-4,2}, {-6,2}, ONE_INCH, BLUE);
+    DrawCircleField({2,4}, 5.0f * ONE_INCH, BLUE);
+    DrawCircleField({-2,4}, 5.0f * ONE_INCH, BLUE);
+    DrawLineField({2,4}, {-2,4}, ONE_INCH, BLUE);
+    DrawLineField({2,4}, {2,6}, ONE_INCH, BLUE);
+    DrawLineField({-2,4}, {-2,6}, ONE_INCH, BLUE);
 
-    DrawCircleV({4,-2}, 5.0f * ONE_INCH, RED);
-    DrawCircleV({4,2}, 5.0f * ONE_INCH, RED);
-    DrawLineEx({4,-2}, {4,2}, ONE_INCH, RED);
-    DrawLineEx({4,-2}, {6,-2}, ONE_INCH, RED);
-    DrawLineEx({4,2}, {6,2}, ONE_INCH, RED);
+    DrawCircleField({2,-4}, 5.0f * ONE_INCH, RED);
+    DrawCircleField({-2,-4}, 5.0f * ONE_INCH, RED);
+    DrawLineField({2,-4}, {-2,-4}, ONE_INCH, RED);
+    DrawLineField({2,-4}, {2,-6}, ONE_INCH, RED);
+    DrawLineField({-2,-4}, {-2,-6}, ONE_INCH, RED);
 }
 
 void drag_points(HermiteSpline &spline, Camera2D &camera) {
-    Vec<float> clicked_position = Vec<float>(GetScreenToWorld2D(GetMousePosition(), camera));
+    Vec<float> clicked_position = Vec<float>(GetScreenToWorld2D(GetMousePosition(), camera)).screen_to_field();
     for (HermitePoint &spline_point: spline.get_points()) {
-        if (spline_point.position.add(spline_point.velocity * spline.get_time_scale() * VELOCITY_DISPLAY_MULTIPLIER).get_distance_to(clicked_position - Vec<float>(GetMouseDelta()) / camera.zoom) <= GRAB_DISTANCE / camera.zoom) {
+        if (spline_point.position.add(spline_point.velocity * spline.get_time_scale() * VELOCITY_DISPLAY_MULTIPLIER).get_distance_to(clicked_position - Vec<float>(GetMouseDelta()).screen_to_field() / camera.zoom) <= GRAB_DISTANCE / camera.zoom) {
             spline_point.velocity = (clicked_position - spline_point.position) / (VELOCITY_DISPLAY_MULTIPLIER * spline.get_time_scale());
             reset();
             return;
         }
-    }
 
-    for (HermitePoint &spline_point: spline.get_points()) {
-        if (spline_point.position.get_distance_to(clicked_position - Vec<float>(GetMouseDelta()) / camera.zoom) <= GRAB_DISTANCE / camera.zoom) { 
+        if (spline_point.position.get_distance_to(clicked_position - Vec<float>(GetMouseDelta()).screen_to_field() / camera.zoom) <= GRAB_DISTANCE / camera.zoom) { 
             spline_point.position.x = clicked_position.x;
             spline_point.position.y = clicked_position.y;
             reset();
@@ -133,12 +118,12 @@ void input() {
             SetTargetFPS(10000);
         }
 
-        float camera_speed = BASE_CAMERA_MOVEMENT_SPEED * GetFrameTime();
+        float camera_speed = BASE_CAMERA_MOVEMENT_SPEED * GetFrameTime() / camera.zoom;
         float zoom_speed = BASE_CAMERA_ZOOM_SPEED * GetFrameTime();
         float duration_edit_speed = BASE_DURATION_EDIT_MULTIPLIER * GetFrameTime();
 
         if (IsKeyDown(KEY_LEFT_SHIFT)) {
-            camera_speed = SPRINT_CAMERA_MOVEMENT_SPEED * GetFrameTime();
+            camera_speed = SPRINT_CAMERA_MOVEMENT_SPEED * GetFrameTime() / camera.zoom;
             zoom_speed = SPRINT_CAMERA_ZOOM_SPEED * GetFrameTime();
             duration_edit_speed = SPRINT_DURATION_EDIT_MULTIPLIER * GetFrameTime();
         }
@@ -153,19 +138,19 @@ void input() {
         }
 
         if (IsKeyDown(KEY_W)) {
-            camera.target.y -= camera_speed / camera.zoom;
+            camera.target.y -= camera_speed;
         }
 
         if (IsKeyDown(KEY_A)) {
-            camera.target.x -= camera_speed / camera.zoom;
+            camera.target.x -= camera_speed;
         }
 
         if (IsKeyDown(KEY_S)) {
-            camera.target.y += camera_speed / camera.zoom;
+            camera.target.y += camera_speed;
         }
 
         if (IsKeyDown(KEY_D)) {
-            camera.target.x += camera_speed / camera.zoom;
+            camera.target.x += camera_speed;
         }
 
         if (IsKeyDown(KEY_UP)) {
@@ -214,13 +199,13 @@ void update() {
                     does_over_acceleration = true;
                 }
                 if (overspeed and over_acceleration) {
-                    DrawLineEx(path_motion.position.to_raylib(), spline.get_position_at(path_index + PATH_INDEX_DELTA).to_raylib(), 0.05f, RED);
+                    DrawLineField(path_motion.position, spline.get_position_at(path_index + PATH_INDEX_DELTA), 0.05f, RED);
                 } else if (over_acceleration) {
-                    DrawLineEx(path_motion.position.to_raylib(), spline.get_position_at(path_index + PATH_INDEX_DELTA).to_raylib(), 0.04f, ORANGE);
+                    DrawLineField(path_motion.position, spline.get_position_at(path_index + PATH_INDEX_DELTA), 0.04f, ORANGE);
                 } else if (overspeed) {
-                    DrawLineEx(path_motion.position.to_raylib(), spline.get_position_at(path_index + PATH_INDEX_DELTA).to_raylib(), 0.04f, YELLOW);
+                    DrawLineField(path_motion.position, spline.get_position_at(path_index + PATH_INDEX_DELTA), 0.04f, YELLOW);
                 } else {
-                    DrawLineEx(path_motion.position.to_raylib(), spline.get_position_at(path_index + PATH_INDEX_DELTA).to_raylib(), 0.03f, PATH_COLOR);
+                    DrawLineField(path_motion.position, spline.get_position_at(path_index + PATH_INDEX_DELTA), 0.03f, PATH_COLOR);
                 }
 
                 if (path_index > spline.get_index_total() - PATH_INDEX_DELTA) {
@@ -230,37 +215,34 @@ void update() {
             }
 
             for (HermitePoint &spline_point: spline.get_points()) {
-                DrawLineEx(spline_point.position.to_raylib(), spline_point.position.add(spline_point.velocity * spline.get_time_scale() * VELOCITY_DISPLAY_MULTIPLIER).to_raylib(), 0.015f, {10, 200, 200, 240});
-                DrawCircleV(spline_point.position.add(spline_point.velocity * spline.get_time_scale() * VELOCITY_DISPLAY_MULTIPLIER).to_raylib(), 0.07f, {10, 200, 200, 240});
-                DrawCircleV(spline_point.position.to_raylib(), 0.07f, PATH_COLOR);
+                DrawLineField(spline_point.position, spline_point.position.add(spline_point.velocity * spline.get_time_scale() * VELOCITY_DISPLAY_MULTIPLIER), 0.015f, {10, 200, 200, 240});
+                DrawCircleField(spline_point.position.add(spline_point.velocity * spline.get_time_scale() * VELOCITY_DISPLAY_MULTIPLIER), 0.07f, {10, 200, 200, 240});
+                DrawCircleField(spline_point.position, 0.07f, PATH_COLOR);
             }
             Motion motion = spline.get_motion_at(simulation_time * spline.get_time_scale());
             motion.velocity.multiply_in_place(spline.get_time_scale());
             motion.acceleration.multiply_in_place(spline.get_time_scale());
 
-            DrawPoly(motion.position.to_raylib(), 4, ROBOT_SIZE / 2.0f, (motion.velocity.atan2() / PI) * 180 + 45, {200, 10, 200, 175});
+            DrawPolyField(motion.position, 4, ROBOT_SIZE / 2.0f, (motion.velocity.atan2() / PI) * 180 + 45, {200, 10, 200, 175});
 
-            DrawLineEx(motion.position.to_raylib(), motion.position.add(motion.velocity.multiply(spline.get_time_scale()).multiply(VELOCITY_DISPLAY_MULTIPLIER)).to_raylib(), 0.025f, BLUE);
-            DrawLineEx(motion.position.add(motion.velocity * spline.get_time_scale() * VELOCITY_DISPLAY_MULTIPLIER).to_raylib(), motion.position.add(motion.velocity * spline.get_time_scale() * VELOCITY_DISPLAY_MULTIPLIER).add(motion.acceleration * spline.get_time_scale() * ACCELERATION_DISPLAY_MULTIPLIER).to_raylib(), 0.025, GREEN);
+            DrawLineField(motion.position, motion.position.add(motion.velocity.multiply(spline.get_time_scale()).multiply(VELOCITY_DISPLAY_MULTIPLIER)), 0.025f, BLUE);
+            DrawLineField(motion.position.add(motion.velocity * spline.get_time_scale() * VELOCITY_DISPLAY_MULTIPLIER), motion.position.add(motion.velocity * spline.get_time_scale() * VELOCITY_DISPLAY_MULTIPLIER).add(motion.acceleration * spline.get_time_scale() * ACCELERATION_DISPLAY_MULTIPLIER), 0.025, GREEN);
 
             if (!paused) {
                 test_position += motion.velocity * GetFrameTime();
             }
-            DrawCircleV(test_position.to_raylib(), .1f, PURPLE);
+            DrawCircleField(test_position, .1f, PURPLE);
+
+            for (HermitePoint &spline_point: spline.get_points()) {  
+                const float size = .2f;
+                const float spacing = .01f;
+                DrawTextField(spline_point.position.to_string_2f().c_str(), spline_point.position.add({0.3f, -0.1f}), size, spacing, GREEN);
+                DrawTextField(std::format("{0:.2f} ft/s", spline_point.velocity.multiply(spline.get_time_scale()).magnitude()).c_str(), spline_point.position.add({-0.2f, -0.1f}), size, spacing, {10, 200, 200, 240});
+                DrawTextField(spline_point.velocity.to_string_2f().c_str(), spline_point.position.add({-0.4f, -0.1f}), size, spacing, {10, 200, 200, 240});
+            }
         EndMode2D();
 
-        for (HermitePoint &spline_point: spline.get_points()) {
-            Vector2 position_text_position = GetWorldToScreen2D(spline_point.position.to_raylib(), camera);
-            position_text_position.x += 10;
-            position_text_position.y -= 20;
-            DrawTextEx(GetFontDefault(), spline_point.position.to_string_2f().c_str(), position_text_position, 17.0f, 1.0f, GREEN);
-            Vector2 velocity_text_position = GetWorldToScreen2D(spline_point.position.to_raylib(), camera);
-            velocity_text_position.x += 10;
-            velocity_text_position.y += 20;
-            DrawTextEx(GetFontDefault(), std::format("{0:.2f} ft/s", spline_point.velocity.multiply(spline.get_time_scale()).magnitude()).c_str(), velocity_text_position, 17.0f, 1.0f, {10, 200, 200, 240});
-            velocity_text_position.y += 20;
-            DrawTextEx(GetFontDefault(), spline_point.velocity.to_string_2f().c_str(), velocity_text_position, 17.0f, 1.0f, {10, 200, 200, 240});
-        }
+        
 
         DrawFPS(WINDOW.x * 0.9f, WINDOW.y * 0.05f);
         DrawText(std::format("Time {0:.2f} / {1:.2f}", simulation_time, spline.index_to_time(spline.get_index_total())).c_str(), 25, 20, 20, WHITE);
@@ -287,7 +269,8 @@ void update() {
 }
 
 int main() {
-    setup_spline();  
+    setup_spline(); 
+    test_position = spline.get_position_at(0); 
 
     if (spline.get_point_count() <= 1) {
         printf("Spling must have at least 2 points\n");
@@ -309,3 +292,6 @@ int main() {
     CloseWindow();
     return 0;
 }
+
+
+// coordinate system: +x is up -y is right

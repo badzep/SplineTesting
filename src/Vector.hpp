@@ -204,4 +204,34 @@ public:
     [[nodiscard]] Vector2 to_raylib() const {
         return {this->x, this->y};
     }
+
+    /**
+     * Also works in reverse
+     */
+    [[nodiscard]] Vec<T> field_to_screen() const {
+        return {-this->y, -this->x};
+    }
+
+    /**
+     * Only exists for the sake of clarity
+     */
+    [[nodiscard]] Vec<T> screen_to_field() const {
+        return {-this->y, -this->x};
+    }
 };
+
+inline void DrawLineField(const Vec<float> start, const Vec<float> end, const float thickness, const Color color) {
+    DrawLineEx(start.field_to_screen().to_raylib(), end.field_to_screen().to_raylib(), thickness, color);
+}
+
+inline void DrawCircleField(const Vec<float> position, const float radius, const Color color) {
+    DrawCircleV(position.field_to_screen().to_raylib(), radius, color);
+}
+
+inline void DrawPolyField(const Vec<float> position, const unsigned int sides, const float radius, const float rotation, const Color color) {
+    DrawPoly(position.field_to_screen().to_raylib(), sides, radius, -rotation, color);
+}
+
+inline void DrawTextField(const char* text, const Vec<float> position, const float font_size, const float spacing, const Color color) {
+    DrawTextEx(GetFontDefault(), text, position.field_to_screen().to_raylib(), font_size, spacing, color);
+}
