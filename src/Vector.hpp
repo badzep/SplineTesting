@@ -128,8 +128,6 @@ public:
     }
 
     [[nodiscard]] Vec<T> normalize() {
-        // const float angle = this->atan2();
-        // return {std::cos(angle), std::sin(angle)};
         return this->divide(this->magnitude());
     }
 
@@ -141,7 +139,7 @@ public:
         return std::string("<") + std::to_string(this->x) + std::string(", ") + std::to_string(this->y) + std::string(">");
     }
     [[nodiscard]] std::string to_string_2f() const {
-        return std::format("<{0:.2f}, {0:.2f}>", this->x, this->y);
+        return std::format("<{0:.2f}, {1:.2f}>", this->x, this->y);
     }
     
     [[nodiscard]] Vector2 to_raylib() const {

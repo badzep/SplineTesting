@@ -11,12 +11,53 @@
 #include "Vector.hpp"
 
 
+Camera2D camera = {};
+bool paused = false;
 float simulation_time = 0;
 float current_position = 0;
 
 void reset() {
     simulation_time = 0;
     current_position = 0;
+}
+
+void draw_grid() {
+    for (int i = -GRID_SIZE; i <= GRID_SIZE; i++) {
+        if (i % 2 == 0) {
+            DrawLineEx({-(float) GRID_SIZE, (float) i}, {(float)GRID_SIZE, (float) i}, .025f, {255,255,255,200});
+            DrawLineEx({(float) i, -(float) GRID_SIZE}, {(float) i, (float) GRID_SIZE}, .025f, {255,255,255,200});
+        } else {  
+            DrawLineV({-(float) GRID_SIZE, (float) i}, {(float)GRID_SIZE, (float) i}, {255,255,255,100});
+            DrawLineV({(float) i, -(float) GRID_SIZE}, {(float) i, (float) GRID_SIZE}, {255,255,255,100});
+        }
+    }
+}
+
+void draw_field() {
+    // loading zones
+    DrawLineEx({4,6}, {6,4}, TWO_INCHES, BLUE);
+    DrawLineEx({4,-6}, {6,-4}, TWO_INCHES, BLUE);
+
+    DrawLineEx({-4,6}, {-6,4}, TWO_INCHES, RED);
+    DrawLineEx({-4,-6}, {-6,-4}, TWO_INCHES, RED);
+
+    // center black I thing
+    DrawLineEx({0,-4}, {0,4}, TWO_INCHES, BLACK);
+    DrawLineEx({-2,-4}, {2,-4}, TWO_INCHES, BLACK);
+    DrawLineEx({-2,4}, {2,4}, TWO_INCHES, BLACK);
+
+    // goal net things
+    DrawCircleV({-4,-2}, 5.0f * ONE_INCH, BLUE);
+    DrawCircleV({-4,2}, 5.0f * ONE_INCH, BLUE);
+    DrawLineEx({-4,-2}, {-4,2}, ONE_INCH, BLUE);
+    DrawLineEx({-4,-2}, {-6,-2}, ONE_INCH, BLUE);
+    DrawLineEx({-4,2}, {-6,2}, ONE_INCH, BLUE);
+
+    DrawCircleV({4,-2}, 5.0f * ONE_INCH, RED);
+    DrawCircleV({4,2}, 5.0f * ONE_INCH, RED);
+    DrawLineEx({4,-2}, {4,2}, ONE_INCH, RED);
+    DrawLineEx({4,-2}, {6,-2}, ONE_INCH, RED);
+    DrawLineEx({4,2}, {6,2}, ONE_INCH, RED);
 }
 
 void drag_points(HermiteSpline &spline, Camera2D &camera) {
@@ -44,18 +85,28 @@ int main() {
     SetConfigFlags(FLAG_MSAA_4X_HINT);
     InitWindow((int) WINDOW.x, (int) WINDOW.y, "Hermite Spline Test");
     
-    SetTargetFPS(200);
-
-    Camera2D camera = {};
-    bool paused = false;
+    SetTargetFPS(60);
 
     HermiteSpline spline;
-    spline.add_point({{0,0},{0,0}});
-    spline.add_point({{0,2},{5,5}});
-    spline.add_point({{-3,1},{-2,-.1}});
-    spline.add_point({{-2,3},{1,-.1}});
-    spline.add_point({{4.5,4.5},{0,0}});
+
+    // spline.total_duration = 5.0f;
+    // spline.add_point(HermitePoint{Vec<float>{-3,-3}, Vec<float>{0,0}});
+    // spline.add_point(HermitePoint{Vec<float>{-2,0}, Vec<float>{0,4}});
+    // spline.add_point(HermitePoint{Vec<float>{-3,4}, Vec<float>{2,3}});
+    // spline.add_point(HermitePoint{Vec<float>{0,5}, Vec<float>{4,0}});
+    // spline.add_point(HermitePoint{Vec<float>{3,4}, Vec<float>{0.3,-4}});
+    // spline.add_point(HermitePoint{Vec<float>{2,1}, Vec<float>{0,-4}});
+    // spline.add_point(HermitePoint{Vec<float>{2,-2}, Vec<float>{0,0}});
     
+    spline.total_duration = 4.0f;
+    spline.add_point(HermitePoint{Vec<float>{-3,-3}, Vec<float>{0,0}});
+    spline.add_point(HermitePoint{Vec<float>{-2.6875,-0.7}, Vec<float>{-0.233821,3.3069}});
+    spline.add_point(HermitePoint{Vec<float>{-2.9625,2.5125}, Vec<float>{0.601254,3.20669}});
+    spline.add_point(HermitePoint{Vec<float>{-1.7125,4.8375}, Vec<float>{3.3069,0.066805}});
+    spline.add_point(HermitePoint{Vec<float>{1.575,4.925}, Vec<float>{3.3,-0.0333328}});
+    spline.add_point(HermitePoint{Vec<float>{2.6375,2.65}, Vec<float>{-0.167015,-3.3069}});
+    spline.add_point(HermitePoint{Vec<float>{2.175,-0.625}, Vec<float>{-0.601252,-3.27349}});
+
     camera.zoom = 80.0f;
     camera.offset = {(float) WINDOW.x / 2.0f, (float) WINDOW.y / 2.0f}; // center camera
 
@@ -116,27 +167,29 @@ int main() {
         }
 
         if (IsKeyDown(KEY_UP)) {
-            total_duration += duration_edit_speed;
+            spline.total_duration += duration_edit_speed;
             reset();
         }
 
         if (IsKeyDown(KEY_DOWN)) {
-            total_duration -= duration_edit_speed;
+            spline.total_duration -= duration_edit_speed;
             reset();
         }
 
         if (IsMouseButtonDown(MOUSE_LEFT_BUTTON)) {
             drag_points(spline,camera);
         }
+
+        if (IsKeyPressed(KEY_P)) {
+            spline.print_parameters();
+        }
         
         float path_length = 0;
         BeginDrawing();
             BeginMode2D(camera);
-                ClearBackground(BLACK);
-                for (int i = -GRID_SIZE; i <= GRID_SIZE; i++) {
-                    DrawLineV({-(float) GRID_SIZE, (float) i}, {(float)GRID_SIZE, (float) i}, {255,255,255,175});
-                    DrawLineV({(float) i, -(float) GRID_SIZE}, {(float) i, (float) GRID_SIZE}, {255,255,255,175});
-                }
+                ClearBackground({100,100,100,255});
+                draw_grid();
+                draw_field();
                 
                 float path_index = 0;
                 bool does_overspeed = false;
@@ -146,7 +199,6 @@ int main() {
                     path_motion.velocity.multiply_in_place(spline.get_time_scale());
                     path_motion.acceleration.multiply_in_place(spline.get_time_scale());
                     path_length += path_motion.position.get_distance_to(spline.get_position_at(path_index + PATH_INDEX_DELTA));
-                    
                     bool overspeed = path_motion.velocity.magnitude() > MAX_VELOCITY;
                     if (overspeed) {
                         does_overspeed = true;
@@ -188,20 +240,21 @@ int main() {
             for (HermitePoint &spline_point: spline.get_points()) {
                 Vector2 position_text_position = GetWorldToScreen2D(spline_point.position.to_raylib(), camera);
                 position_text_position.x += 10;
-                position_text_position.y -= 10;
-                DrawTextEx(GetFontDefault(), spline_point.position.to_string_2f().c_str(), position_text_position, 15.0f, 1.0f, GREEN);
+                position_text_position.y -= 20;
+                DrawTextEx(GetFontDefault(), spline_point.position.to_string_2f().c_str(), position_text_position, 17.0f, 1.0f, GREEN);
                 Vector2 velocity_text_position = GetWorldToScreen2D(spline_point.position.to_raylib(), camera);
                 velocity_text_position.x += 10;
                 velocity_text_position.y += 20;
-                DrawTextEx(GetFontDefault(), std::format("{0:.2f} ft/s, {1:.2f} rad", spline_point.velocity.magnitude() * spline.get_time_scale(), spline_point.velocity.atan2()).c_str(), velocity_text_position, 15.0f, 1.0f, BLUE);
+                DrawTextEx(GetFontDefault(), std::format("{0:.2f} ft/s", spline_point.velocity.multiply(spline.get_time_scale()).magnitude()).c_str(), velocity_text_position, 17.0f, 1.0f, {10, 200, 200, 240});
                 velocity_text_position.y += 20;
-                DrawTextEx(GetFontDefault(), spline_point.velocity.multiply(spline.get_time_scale()).to_string_2f().c_str(), velocity_text_position, 15.0f, 1.0f, BLUE);
+                DrawTextEx(GetFontDefault(), spline_point.velocity.to_string_2f().c_str(), velocity_text_position, 17.0f, 1.0f, {10, 200, 200, 240});
             }
 
-            DrawText(std::format("Time {0:.2f} / {1:.2f}", simulation_time, spline.index_to_time(spline.get_index_total())).c_str(), 20, 20, 20, WHITE);
-            DrawText(std::format("Position {0:.2f} / {1:.2f}", current_position, path_length).c_str(), 20, 40, 20, WHITE);
-            DrawText(std::format("Velocity {0:.2f} / {1:.2f}", motion.velocity.magnitude(), MAX_VELOCITY).c_str(), 20, 60, 20, WHITE);
-            DrawText(std::format("Acceleration {0:.2f} / {1:.2f}", motion.acceleration.magnitude(), MAX_ACCELERATION).c_str(), 20, 80, 20, WHITE);
+            DrawFPS(WINDOW.x * 0.9f, WINDOW.y * 0.05f);
+            DrawText(std::format("Time {0:.2f} / {1:.2f}", simulation_time, spline.index_to_time(spline.get_index_total())).c_str(), 25, 20, 20, WHITE);
+            DrawText(std::format("Position {0:.2f} / {1:.2f}", current_position, path_length).c_str(), 25, 40, 20, WHITE);
+            DrawText(std::format("Velocity {0:.2f} / {1:.2f}", motion.velocity.magnitude(), MAX_VELOCITY).c_str(), 25, 60, 20, WHITE);
+            DrawText(std::format("Acceleration {0:.2f} / {1:.2f}", motion.acceleration.magnitude(), MAX_ACCELERATION).c_str(), 25, 80, 20, WHITE);
 
             if (does_overspeed) {
                 DrawText("Warning: Path Exceeds Speed Constraint", 20, WINDOW.y - 60, 20, YELLOW);

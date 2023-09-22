@@ -3,6 +3,7 @@
 
 #include <cassert>
 #include <cmath>
+#include <iostream>
 #include <vector>
 
 
@@ -31,9 +32,19 @@ public:
 
 class HermiteSpline {
 protected:
+    
     std::vector<HermitePoint> points;
 
 public:
+    float total_duration = 5.0f;
+
+    void print_parameters() {
+        std::cout << "spline.total_duration = " << this->total_duration << ";"<< "\n";
+        for (HermitePoint &point: this->points) {
+            std::cout << "spline.add_point(HermitePoint{Vec<float>{" << point.position.x << ", " << point.position.y << "}, Vec<float>{" << point.velocity.x << ", " << point.velocity.y << "}});" << "\n";
+        }
+    }
+
     std::vector<HermitePoint>& get_points() {
         return this->points;
     }
@@ -51,16 +62,40 @@ public:
     }
 
     float index_to_time(const float index) {
-        return (index / this->get_index_total()) * total_duration;
+        return (index / this->get_index_total()) * this->total_duration;
     }
 
     float time_to_index(const float time) {
-        return (time / total_duration) * this->get_index_total();
+        return (time / this->total_duration) * this->get_index_total();
     }
 
     float get_time_scale() {
-        return this->get_index_total() / total_duration;
+        return this->get_index_total() / this->total_duration;
     }
+
+    // doesnt work, forgot integrals are signed lmao
+    // Vec<float> get_distance_at(const float index) {
+    //     assert(this->points.size() > 1);
+
+    //     unsigned int start_index = std::floor(index);
+
+    //     const HermitePoint start_point = this->points[start_index];
+    //     const HermitePoint end_point = this->points[start_index + 1];
+
+    //     const float region_index = index - (float) start_index;
+
+    //     const float index_squared = region_index * region_index;
+    //     const float index_cubed = index_squared * region_index;
+    //     const float index_quad = index_cubed * region_index;
+
+    //     const float start_position_coefficient_integral = (index_quad / 2.0f - index_cubed + region_index);
+    //     const float start_velocity_coefficient_integral = (index_quad / 4.0f - 2.0f / 3.0f * index_cubed  + index_squared / 2.0f);
+    //     const float end_position_coefficient_integral = (-index_quad / 2.0f + index_cubed);
+    //     const float end_velocity_coefficient_integral = (index_quad / 4.0f - index_cubed / 3.0f);
+
+    //     return {start_position_coefficient_integral * start_point.position.x + start_velocity_coefficient_integral * start_point.velocity.x + end_position_coefficient_integral * end_point.position.x + end_velocity_coefficient_integral * end_point.velocity.x,
+    //             start_position_coefficient_integral * start_point.position.y + start_velocity_coefficient_integral * start_point.velocity.y + end_position_coefficient_integral * end_point.position.y + end_velocity_coefficient_integral * end_point.velocity.y};
+    // }
 
     Vec<float> get_position_at(const float index) {
         assert(this->points.size() > 1);

@@ -4,7 +4,7 @@
 #include <raylib.h>
 #include <string>
 
-static float total_duration = 6.0f;
+
 constexpr float BASE_DURATION_EDIT_MULTIPLIER = 0.25f;
 constexpr float SPRINT_DURATION_EDIT_MULTIPLIER = BASE_DURATION_EDIT_MULTIPLIER * 10;
 
@@ -14,7 +14,7 @@ constexpr float ACCELERATION_DISPLAY_MULTIPLIER = 0.025f;
 
 constexpr Color PATH_COLOR = {10, 200, 100, 200};
 
-constexpr float PATH_INDEX_DELTA = 1e-2; // time step size when drawing path
+constexpr float PATH_INDEX_DELTA = 1e-3; // time step size when drawing path
 
 constexpr float GRAB_DISTANCE = 10.0f;
 
@@ -29,4 +29,8 @@ constexpr float GRID_SIZE = 6.0f;
 constexpr float MAX_VELOCITY = 5.0f;
 constexpr float MAX_ACCELERATION = 20.0f;
 
+constexpr float ONE_FOOT = 1.0f;
+constexpr float TWO_FEET = 2.0f;
 
+constexpr float ONE_INCH = 1.0f / 12.0f;
+constexpr float TWO_INCHES = 1.0f / 6.0f;

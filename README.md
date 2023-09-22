@@ -23,4 +23,6 @@ Down arrow decreases spline duration
 
 Shift increases the speed all controls
 
+P prints out the spline parameters
+
 *Note: all distances are in feet and times in seconds
