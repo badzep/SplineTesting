@@ -236,19 +236,19 @@ void update() {
             for (HermitePoint &spline_point: spline.get_points()) {  
                 const float size = .2f;
                 const float spacing = .01f;
-                DrawTextField(spline_point.position.to_string_2f().c_str(), spline_point.position.add({0.3f, -0.1f}), size, spacing, GREEN);
-                DrawTextField(std::format("{0:.2f} ft/s", spline_point.velocity.multiply(spline.get_time_scale()).magnitude()).c_str(), spline_point.position.add({-0.2f, -0.1f}), size, spacing, {10, 200, 200, 240});
-                DrawTextField(spline_point.velocity.to_string_2f().c_str(), spline_point.position.add({-0.4f, -0.1f}), size, spacing, {10, 200, 200, 240});
+                DrawTextField(("Pos: " + spline_point.position.to_string_2f()).c_str(), spline_point.position.add({0.3f, -0.1f}), size, spacing, BLACK);
+                DrawTextField(std::format("Vel: {0:.2f} ft/s", spline_point.velocity.multiply(spline.get_time_scale()).magnitude()).c_str(), spline_point.position.add({-0.2f, -0.1f}), size, spacing, BLACK);
+                DrawTextField(spline_point.velocity.to_string_2f().c_str(), spline_point.position.add({-0.4f, -0.1f}), size, spacing, BLACK);
             }
         EndMode2D();
 
         
 
         DrawFPS(WINDOW.x * 0.9f, WINDOW.y * 0.05f);
-        DrawText(std::format("Time {0:.2f} / {1:.2f}", simulation_time, spline.index_to_time(spline.get_index_total())).c_str(), 25, 20, 20, WHITE);
-        DrawText(std::format("Position {0:.2f} / {1:.2f}", current_position, path_length).c_str(), 25, 40, 20, WHITE);
-        DrawText(std::format("Velocity {0:.2f} / {1:.2f}", motion.velocity.magnitude(), MAX_VELOCITY).c_str(), 25, 60, 20, WHITE);
-        DrawText(std::format("Acceleration {0:.2f} / {1:.2f}", motion.acceleration.magnitude(), MAX_ACCELERATION).c_str(), 25, 80, 20, WHITE);
+        DrawText(std::format("Time {0:.2f} / {1:.2f}", simulation_time, spline.index_to_time(spline.get_index_total())).c_str(), 25, 20, 20, BLACK);
+        DrawText(std::format("Position {0:.2f} / {1:.2f}", current_position, path_length).c_str(), 25, 40, 20, BLACK);
+        DrawText(std::format("Velocity {0:.2f} / {1:.2f}", motion.velocity.magnitude(), MAX_VELOCITY).c_str(), 25, 60, 20, BLACK);
+        DrawText(std::format("Acceleration {0:.2f} / {1:.2f}", motion.acceleration.magnitude(), MAX_ACCELERATION).c_str(), 25, 80, 20, BLACK);
 
         if (does_overspeed) {
             DrawText("Warning: Path Exceeds Speed Constraint", 30, WINDOW.y - 60, 20, YELLOW);
@@ -280,8 +280,9 @@ int main() {
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     SetConfigFlags(FLAG_MSAA_4X_HINT);
     InitWindow((int) WINDOW.x, (int) WINDOW.y, "Hermite Spline Test");
-    
     SetTargetFPS(200);
+
+    font = LoadFont("../res/jetbrains_mono.ttf"); // literally the best one on god
 
     camera.zoom = 80.0f;
     camera.offset = {(float) WINDOW.x / 2.0f, (float) WINDOW.y / 2.0f};
@@ -290,8 +291,6 @@ int main() {
         update();
     }
     CloseWindow();
+    UnloadFont(font);
     return 0;
 }
-
-
-// coordinate system: +x is up -y is right

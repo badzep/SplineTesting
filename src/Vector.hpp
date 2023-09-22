@@ -7,6 +7,9 @@
 #include <format>
 
 
+#include "Constants.hpp"
+
+
 template<typename T> 
 class Vec {
 public:
@@ -233,5 +236,5 @@ inline void DrawPolyField(const Vec<float> position, const unsigned int sides, c
 }
 
 inline void DrawTextField(const char* text, const Vec<float> position, const float font_size, const float spacing, const Color color) {
-    DrawTextEx(GetFontDefault(), text, position.field_to_screen().to_raylib(), font_size, spacing, color);
+    DrawTextEx(font, text, position.field_to_screen().to_raylib(), font_size, spacing, color);
 }
