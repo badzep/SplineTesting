@@ -5,6 +5,11 @@
 #include <string>
 
 
+constexpr float mm_to_feet(const float feet) {
+	return feet * 0.0032808f;
+}
+
+
 constexpr float BASE_DURATION_EDIT_MULTIPLIER = 0.25f;
 constexpr float SPRINT_DURATION_EDIT_MULTIPLIER = BASE_DURATION_EDIT_MULTIPLIER * 10;
 
@@ -42,6 +47,9 @@ constexpr float PATH_HEIGHT = 0.1f;
 constexpr float VELOCITY_NODE_HEIGHT = PATH_HEIGHT + NODE_SIZE;
 constexpr float ROBOT_HEIGHT = 0.6f;
 constexpr float ROBOT_NODE_HEIGHT = ROBOT_HEIGHT + NODE_SIZE;
+
+constexpr float WALL_HEIGHT = mm_to_feet(300.0f);
+constexpr float GOAL_ELEVATION = 0.5f;
 
 static Font font;
 

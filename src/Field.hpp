@@ -139,14 +139,14 @@ public:
 	    DrawLineField({-4,2}, {-4,-2}, TWO_INCHES, BLACK);
 
 	    // goal net things
-	    DrawCircleField({2,4}, 5.0f * ONE_INCH, BLUE);
-	    DrawCircleField({-2,4}, 5.0f * ONE_INCH, BLUE);
+	    DrawCircleField({2,4}, mm_to_feet(100.0), BLUE);
+	    DrawCircleField({-2,4}, mm_to_feet(100.0), BLUE);
 	    DrawLineField({2,4}, {-2,4}, ONE_INCH, BLUE);
 	    DrawLineField({2,4}, {2,6}, ONE_INCH, BLUE);
 	    DrawLineField({-2,4}, {-2,6}, ONE_INCH, BLUE);
 
-	    DrawCircleField({2,-4}, 5.0f * ONE_INCH, RED);
-	    DrawCircleField({-2,-4}, 5.0f * ONE_INCH, RED);
+	    DrawCircleField({2,-4}, mm_to_feet(100.0), RED);
+	    DrawCircleField({-2,-4}, mm_to_feet(100.0), RED);
 	    DrawLineField({2,-4}, {-2,-4}, ONE_INCH, RED);
 	    DrawLineField({2,-4}, {2,-6}, ONE_INCH, RED);
 	    DrawLineField({-2,-4}, {-2,-6}, ONE_INCH, RED);
@@ -214,7 +214,6 @@ public:
 		int fogDensityLoc = GetShaderLocation(this->lighting_shader, "fog_density");
 		this->fog_density = 0.0f;
     	SetShaderValue(this->lighting_shader, fogDensityLoc, &this->fog_density, SHADER_UNIFORM_FLOAT);
-    	// make_light(this->lighting_shader, {0, 0, 3}, LIGHT);
 
     	make_light(this->lighting_shader, {GRID_SIZE / 2.0f, GRID_SIZE / 2.0f, 3}, LIGHT);
     	make_light(this->lighting_shader, {-GRID_SIZE / 2.0f, GRID_SIZE / 2.0f, 3}, LIGHT);
@@ -224,8 +223,8 @@ public:
 
     	this->field_model = LoadModelFromMesh(GenMeshCube(GRID_SIZE * 2.0f, GRID_SIZE * 2.0f, 1.0f));
 		this->robot_model = LoadModelFromMesh(GenMeshCube(ROBOT_SIZE, ROBOT_SIZE, ROBOT_HEIGHT));
-		this->thick_pipe = LoadModelFromMesh(GenMeshCylinder(ONE_INCH, 1.0f, 10));
-		this->thin_pipe = LoadModelFromMesh(GenMeshCylinder(ONE_INCH / 2.0f, 1.0f, 10));
+		this->thick_pipe = LoadModelFromMesh(GenMeshCylinder(mm_to_feet(30.0f), 1.0f, 10));
+		this->thin_pipe = LoadModelFromMesh(GenMeshCylinder(mm_to_feet(10.5f), 1.0f, 10));
 
 		this->field_model.materials[0].shader = this->lighting_shader;
 		this->robot_model.materials[0].shader = this->lighting_shader;
@@ -276,8 +275,31 @@ public:
 
 		DrawModelEx(this->thick_pipe, {4, 0, ONE_INCH}, {1,0,0}, 90.0f, {1,2,1}, BLUE);
 		DrawModelEx(this->thick_pipe, {4, 0, 2 + ONE_INCH}, {0,0,1}, -90.0f, {1,2,1}, BLUE);
+
 		DrawModelEx(this->thick_pipe, {-4, 0, ONE_INCH}, {1,0,0}, 90.0f, {1,2,1}, RED);
 		DrawModelEx(this->thick_pipe, {-4, 0, 2 + ONE_INCH}, {0,0,1}, 90.0f, {1,2,1}, RED);
+
+		DrawModelEx(this->thin_pipe, {-2, -4, 0}, {1,0,0}, 90.0f, {1,0.5f,1}, RED);
+		DrawModelEx(this->thin_pipe, {2, -4, 0}, {1,0,0}, 90.0f, {1,0.5f,1}, RED);
+		DrawModelEx(this->thin_pipe, {-2, -6, 0}, {1,0,0}, 90.0f, {1,WALL_HEIGHT,1}, BLACK);
+		DrawModelEx(this->thin_pipe, {2, -6, 0}, {1,0,0}, 90.0f, {1,WALL_HEIGHT,1}, BLACK);
+		DrawModelEx(this->thin_pipe, {-2, -4, 0.5f}, {0,0,1}, 180.0f, {1,2,1}, RED);
+		DrawModelEx(this->thin_pipe, {2, -4, 0.5f}, {0,0,1}, 180.0f, {1,2,1}, RED);
+		DrawModelEx(this->thin_pipe, {2, -4, 0.5f}, {0,0,1}, 90.0f, {1,4,1}, BLACK);
+		DrawModelEx(this->thin_pipe, {2, -6, WALL_HEIGHT}, {0,0,1}, 90.0f, {1,4,1}, BLACK);
+		DrawModelEx(this->thin_pipe, {-2, -6, WALL_HEIGHT}, {1,0,0}, -std::atan((WALL_HEIGHT - 0.5f) / 2.0f) * 180.0f / PI, {1,std::hypot(2.0f, WALL_HEIGHT - 0.5f),1}, BLACK);
+		DrawModelEx(this->thin_pipe, {2, -6, WALL_HEIGHT}, {1,0,0}, -std::atan((WALL_HEIGHT - 0.5f) / 2.0f) * 180.0f / PI, {1,std::hypot(2.0f, WALL_HEIGHT - 0.5f),1}, BLACK);
+
+		DrawModelEx(this->thin_pipe, {-2, 4, 0}, {1,0,0}, 90.0f, {1,0.5f,1}, BLUE);
+		DrawModelEx(this->thin_pipe, {2, 4, 0}, {1,0,0}, 90.0f, {1,0.5f,1}, BLUE);
+		DrawModelEx(this->thin_pipe, {-2, 6, 0}, {1,0,0}, 90.0f, {1,WALL_HEIGHT,1}, BLACK);
+		DrawModelEx(this->thin_pipe, {2, 6, 0}, {1,0,0}, 90.0f, {1,WALL_HEIGHT,1}, BLACK);
+		DrawModelEx(this->thin_pipe, {-2, 4, 0.5f}, {0,0,1}, 0.0f, {1,2,1}, BLUE);
+		DrawModelEx(this->thin_pipe, {2, 4, 0.5f}, {0,0,1}, 0.0f, {1,2,1}, BLUE);
+		DrawModelEx(this->thin_pipe, {2, 4, 0.5f}, {0,0,1}, 90.0f, {1,4,1}, BLACK);
+		DrawModelEx(this->thin_pipe, {2, 6, WALL_HEIGHT}, {0,0,1}, 90.0f, {1,4,1}, BLACK);
+		DrawModelEx(this->thin_pipe, {-2, 6, WALL_HEIGHT}, {1,0,0}, std::atan((WALL_HEIGHT - 0.5f) / 2.0f) * 180.0f / PI + 180, {1,std::hypot(2.0f, WALL_HEIGHT - 0.5f),1}, BLACK);
+		DrawModelEx(this->thin_pipe, {2, 6, WALL_HEIGHT}, {1,0,0}, std::atan((WALL_HEIGHT - 0.5f) / 2.0f) * 180.0f / PI + 180, {1,std::hypot(2.0f, WALL_HEIGHT - 0.5f),1}, BLACK);
 	}
 
 	void render() {
@@ -285,7 +307,7 @@ public:
 			BeginMode3D(camera);
 				UpdateCamera(&this->camera, camera.projection);
 
-				ClearBackground(BLACK);
+				ClearBackground({50,50,50});
 				
 				this->draw_grid();
 				this->draw_field();
