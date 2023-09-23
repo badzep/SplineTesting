@@ -35,4 +35,7 @@ constexpr float TWO_FEET = 2.0f;
 constexpr float ONE_INCH = 1.0f / 12.0f;
 constexpr float TWO_INCHES = 1.0f / 6.0f;
 
+constexpr float PATH_HEIGHT = 0.1f;
+constexpr float ROBOT_HEIGHT = 0.6f;
+
 static Font font;

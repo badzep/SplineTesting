@@ -13,48 +13,47 @@
 
 class Motion {
 public:
-    Vec<float> position;
-    Vec<float> velocity;
-    Vec<float> acceleration;
+    Vec2<float> position;
+    Vec2<float> velocity;
+    Vec2<float> acceleration;
 
-    Motion(const Vec<float> position, const Vec<float> velocity, const Vec<float> acceleration): position(position), velocity(velocity), acceleration(acceleration) {}
+    Motion(const Vec2<float> position, const Vec2<float> velocity, const Vec2<float> acceleration): position(position), velocity(velocity), acceleration(acceleration) {}
 };
 
-class HermitePoint {
+class Node {
 public:
-    Vec<float> position;
-    Vec<float> velocity;
+    Vec2<float> position;
+    Vec2<float> velocity;
 
-    Vec<float> get_velocity_end_point() const {
+    Vec2<float> get_velocity_end_point() const {
         return this->position.add(this->velocity.multiply(VELOCITY_DISPLAY_MULTIPLIER));
     }
 };
 
 class HermiteSpline {
 protected:
-    
-    std::vector<HermitePoint> points;
+    std::vector<Node> nodes;
 
 public:
     float total_duration = 5.0f;
 
     void print_parameters() {
         std::cout << "spline.total_duration = " << this->total_duration << ";"<< "\n";
-        for (HermitePoint &point: this->points) {
+        for (Node &point: this->nodes) {
             std::cout << "spline.add_point(HermitePoint{Vec<float>{" << point.position.x << ", " << point.position.y << "}, Vec<float>{" << point.velocity.x << ", " << point.velocity.y << "}});" << "\n";
         }
     }
 
-    std::vector<HermitePoint>& get_points() {
-        return this->points;
+    std::vector<Node>& get_nodes() {
+        return this->nodes;
     }
 
     [[nodiscard]] unsigned int get_point_count() const {
-        return this->points.size();
+        return this->nodes.size();
     }
 
-    void add_point(const HermitePoint end_point) {
-        this->points.push_back(end_point);
+    void add_point(const Node end_point) {
+        this->nodes.push_back(end_point);
     }
 
     float get_index_total() {
@@ -73,11 +72,11 @@ public:
         return this->get_index_total() / this->total_duration;
     }
 
-    Vec<float> get_position_at(const float index) {
+    Vec2<float> get_position_at(const float index) {
         unsigned int start_index = std::floor(index);
 
-        const HermitePoint start_point = this->points[start_index];
-        const HermitePoint end_point = this->points[start_index + 1];
+        const Node start_point = this->nodes[start_index];
+        const Node end_point = this->nodes[start_index + 1];
 
         const float region_index = index - (float) start_index;
         const float index_squared = region_index * region_index;
@@ -92,8 +91,8 @@ public:
     Motion get_motion_at(const float index) {
         unsigned int start_index = std::floor(index);
 
-        const HermitePoint start_point = this->points[start_index];
-        const HermitePoint end_point = this->points[start_index + 1];
+        const Node start_point = this->nodes[start_index];
+        const Node end_point = this->nodes[start_index + 1];
 
         const float region_index = index - (float) start_index;
         const float index_squared = region_index * region_index;
