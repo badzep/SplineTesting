@@ -62,8 +62,8 @@ public:
 
 	            for (Node &spline_point: spline.get_nodes()) {
 	                DrawLineField(spline_point.position, spline_point.position.add(spline_point.velocity * spline.get_time_scale() * VELOCITY_DISPLAY_MULTIPLIER), 0.015f, {10, 200, 200, 240});
-	                DrawCircleField(spline_point.position.add(spline_point.velocity * spline.get_time_scale() * VELOCITY_DISPLAY_MULTIPLIER), 0.07f, {10, 200, 200, 240});
-	                DrawCircleField(spline_point.position, 0.07f, PATH_COLOR);
+	                DrawCircleField(spline_point.position.add(spline_point.velocity * spline.get_time_scale() * VELOCITY_DISPLAY_MULTIPLIER), NODE_SIZE, {10, 200, 200, 240});
+	                DrawCircleField(spline_point.position, NODE_SIZE, PATH_COLOR);
 	            }
 	            Motion motion = spline.get_motion_at(current_time * spline.get_time_scale());
 	            motion.velocity.multiply_in_place(spline.get_time_scale());
@@ -171,10 +171,35 @@ public:
 	}
 };
 
+static void make_light(Shader &lighting_shader, Vector3 position, Color color) {
+	static int lights_count = 0;
+	int enabledLoc = GetShaderLocation(lighting_shader, std::format("lights[{}].enabled", lights_count).c_str());
+    int typeLoc = GetShaderLocation(lighting_shader, std::format("lights[{}].type", lights_count).c_str());
+    int positionLoc = GetShaderLocation(lighting_shader, std::format("lights[{}].position", lights_count).c_str());
+    int targetLoc = GetShaderLocation(lighting_shader, std::format("lights[{}].target", lights_count).c_str());
+    int colorLoc = GetShaderLocation(lighting_shader, std::format("lights[{}].color", lights_count).c_str());
+
+    SetShaderValue(lighting_shader, enabledLoc, &LIGHT_ENABLED, SHADER_UNIFORM_INT);
+    SetShaderValue(lighting_shader, typeLoc, &LIGHT_TYPE, SHADER_UNIFORM_INT);
+    float _position[3] = {position.x, position.y, position.z};
+    SetShaderValue(lighting_shader, positionLoc, _position, SHADER_UNIFORM_VEC3);
+    float target[3] = {0,0,0};
+    SetShaderValue(lighting_shader, targetLoc, target, SHADER_UNIFORM_VEC3);
+    float _color[4] = {(float)color.r/(float)255, (float)color.g/(float)255,
+                       (float)color.b/(float)255, (float)color.a/(float)255};
+    SetShaderValue(lighting_shader, colorLoc, _color, SHADER_UNIFORM_VEC4);
+    lights_count++;
+}
+
 class Field3d {
 public:
 	Camera3D camera = {};
+	float fog_density;
+	Shader lighting_shader;
+	Model field_model;
 	Model robot_model;
+	Model thick_pipe;
+	Model thin_pipe;
 
 	explicit Field3d() {
 		camera.position = {0, 0, 1};
@@ -182,11 +207,38 @@ public:
 		camera.fovy = 60;
 		camera.up = {0.0f, 0.0f, 1.0f};
 		camera.projection = CAMERA_PERSPECTIVE;
+
+		this->lighting_shader = this->lighting_shader = LoadShader("../res/lighting.vs", "../res/fog.fs");
+		this->lighting_shader.locs[SHADER_LOC_VECTOR_VIEW] = GetShaderLocation(this->lighting_shader, "viewPos");
+
+		int fogDensityLoc = GetShaderLocation(this->lighting_shader, "fog_density");
+		this->fog_density = 0.0f;
+    	SetShaderValue(this->lighting_shader, fogDensityLoc, &this->fog_density, SHADER_UNIFORM_FLOAT);
+    	// make_light(this->lighting_shader, {0, 0, 3}, LIGHT);
+
+    	make_light(this->lighting_shader, {GRID_SIZE / 2.0f, GRID_SIZE / 2.0f, 3}, LIGHT);
+    	make_light(this->lighting_shader, {-GRID_SIZE / 2.0f, GRID_SIZE / 2.0f, 3}, LIGHT);
+    	make_light(this->lighting_shader, {GRID_SIZE / 2.0f, -GRID_SIZE / 2.0f, 3}, LIGHT);
+    	make_light(this->lighting_shader, {-GRID_SIZE / 2.0f, -GRID_SIZE / 2.0f, 3}, LIGHT);
+
+
+    	this->field_model = LoadModelFromMesh(GenMeshCube(GRID_SIZE * 2.0f, GRID_SIZE * 2.0f, 1.0f));
 		this->robot_model = LoadModelFromMesh(GenMeshCube(ROBOT_SIZE, ROBOT_SIZE, ROBOT_HEIGHT));
+		this->thick_pipe = LoadModelFromMesh(GenMeshCylinder(ONE_INCH, 1.0f, 10));
+		this->thin_pipe = LoadModelFromMesh(GenMeshCylinder(ONE_INCH / 2.0f, 1.0f, 10));
+
+		this->field_model.materials[0].shader = this->lighting_shader;
+		this->robot_model.materials[0].shader = this->lighting_shader;
+		this->thin_pipe.materials[0].shader = this->lighting_shader;
+		this->thick_pipe.materials[0].shader = this->lighting_shader;
 	}
 
 	~Field3d() {
+		UnloadModel(this->field_model);
 		UnloadModel(this->robot_model);
+		UnloadModel(this->thick_pipe);
+		UnloadModel(this->thin_pipe);
+		UnloadShader(this->lighting_shader);
 	}
 
 	void draw_grid() {
@@ -211,7 +263,21 @@ public:
 	}
 
 	void draw_field() {
-		DrawCubeV({0,0,-0.5f}, {GRID_SIZE * 2.0f, GRID_SIZE * 2.0f, 1.0f,}, {100,100,100,255});
+		DrawModel(this->field_model, {0,0,-0.5f}, 1.0f, {100,100,100,255});
+		DrawModelEx(this->thick_pipe, {-4, -6, ONE_INCH}, {0,0,1}, 45.0f, {1, Vec2<float>(2,2).magnitude(), 1}, BLUE);
+		DrawModelEx(this->thick_pipe, {6, -4, ONE_INCH}, {0,0,1}, 135.0f, {1, Vec2<float>(2,2).magnitude(), 1}, BLUE);
+
+		DrawModelEx(this->thick_pipe, {6, 4, ONE_INCH}, {0,0,1}, 45.0f, {1, Vec2<float>(2,2).magnitude(), 1}, RED);
+		DrawModelEx(this->thick_pipe, {-4, 6, ONE_INCH}, {0,0,1}, 135.0f, {1, Vec2<float>(2,2).magnitude(), 1}, RED);
+
+		DrawModelEx(this->thick_pipe, {4, 0, ONE_INCH}, {0,0,1}, 90.0f, {1,8,1}, BLACK);
+		DrawModelEx(this->thick_pipe, {4, -2, ONE_INCH}, {0,0,1}, 0.0f, {1,4,1}, BLACK);
+		DrawModelEx(this->thick_pipe, {-4, -2, ONE_INCH}, {0,0,1}, 0.0f, {1,4,1}, BLACK);
+
+		DrawModelEx(this->thick_pipe, {4, 0, ONE_INCH}, {1,0,0}, 90.0f, {1,2,1}, BLUE);
+		DrawModelEx(this->thick_pipe, {4, 0, 2 + ONE_INCH}, {0,0,1}, -90.0f, {1,2,1}, BLUE);
+		DrawModelEx(this->thick_pipe, {-4, 0, ONE_INCH}, {1,0,0}, 90.0f, {1,2,1}, RED);
+		DrawModelEx(this->thick_pipe, {-4, 0, 2 + ONE_INCH}, {0,0,1}, 90.0f, {1,2,1}, RED);
 	}
 
 	void render() {
@@ -257,20 +323,19 @@ public:
 	            }
 
 	            for (Node &spline_point: spline.get_nodes()) {
-	                DrawLine3D(spline_point.position.to_3d(PATH_HEIGHT).to_raylib(), spline_point.position.add(spline_point.velocity * spline.get_time_scale() * VELOCITY_DISPLAY_MULTIPLIER).to_3d(PATH_HEIGHT).to_raylib(), {10, 200, 200, 240});
-	                DrawSphere(spline_point.position.add(spline_point.velocity * spline.get_time_scale() * VELOCITY_DISPLAY_MULTIPLIER).to_3d(PATH_HEIGHT).to_raylib(), 0.07f, {10, 200, 200, 240});
-	                DrawSphere(spline_point.position.to_3d(PATH_HEIGHT).to_raylib(), 0.07f, PATH_COLOR);
+	                DrawLine3D(spline_point.position.to_3d(VELOCITY_NODE_HEIGHT).to_raylib(), spline_point.position.add(spline_point.velocity * spline.get_time_scale() * VELOCITY_DISPLAY_MULTIPLIER).to_3d(VELOCITY_NODE_HEIGHT).to_raylib(), {10, 200, 200, 240});
+	                DrawSphere(spline_point.position.add(spline_point.velocity * spline.get_time_scale() * VELOCITY_DISPLAY_MULTIPLIER).to_3d(VELOCITY_NODE_HEIGHT).to_raylib(), NODE_SIZE, {10, 200, 200, 240});
+	                DrawLine3D(spline_point.position.to_3d(PATH_HEIGHT).to_raylib(), spline_point.position.to_3d(VELOCITY_NODE_HEIGHT).to_raylib(), PATH_COLOR);
+	                DrawSphere(spline_point.position.to_3d(PATH_HEIGHT).to_raylib(), NODE_SIZE, PATH_COLOR);
 	            }
 	            Motion motion = spline.get_motion_at(current_time * spline.get_time_scale());
 	            motion.velocity.multiply_in_place(spline.get_time_scale());
 	            motion.acceleration.multiply_in_place(spline.get_time_scale());
 
-	            // DrawCubeV(motion.position.to_3d(ROBOT_HEIGHT / 2.0f).to_raylib(), {ROBOT_SIZE, ROBOT_SIZE, ROBOT_HEIGHT}, {200, 10, 200, 175});
-	            // DrawModel(this->robot_model, motion.position.to_3d(ROBOT_HEIGHT / 2.0f).to_raylib(), 1, {200, 10, 200, 175});
 	            DrawModelEx(this->robot_model, motion.position.to_3d(ROBOT_HEIGHT / 2.0f).to_raylib(),{0,0,1}, (motion.velocity.atan2() / PI) * 180, {1,1,1}, {200, 10, 200, 175});
 
-	            DrawLine3D(motion.position.to_3d(PATH_HEIGHT).to_raylib(), motion.position.add(motion.velocity.multiply(spline.get_time_scale()).multiply(VELOCITY_DISPLAY_MULTIPLIER)).to_3d(PATH_HEIGHT).to_raylib(), BLUE);
-	            DrawLine3D(motion.position.add(motion.velocity * spline.get_time_scale() * VELOCITY_DISPLAY_MULTIPLIER).to_3d(PATH_HEIGHT).to_raylib(), motion.position.add(motion.velocity * spline.get_time_scale() * VELOCITY_DISPLAY_MULTIPLIER).add(motion.acceleration * spline.get_time_scale() * ACCELERATION_DISPLAY_MULTIPLIER).to_3d(PATH_HEIGHT).to_raylib(), GREEN);
+	            DrawLine3D(motion.position.to_3d(ROBOT_NODE_HEIGHT).to_raylib(), motion.position.add(motion.velocity.multiply(spline.get_time_scale()).multiply(VELOCITY_DISPLAY_MULTIPLIER)).to_3d(ROBOT_NODE_HEIGHT).to_raylib(), BLUE);
+	            DrawLine3D(motion.position.add(motion.velocity * spline.get_time_scale() * VELOCITY_DISPLAY_MULTIPLIER).to_3d(ROBOT_NODE_HEIGHT).to_raylib(), motion.position.add(motion.velocity * spline.get_time_scale() * VELOCITY_DISPLAY_MULTIPLIER).add(motion.acceleration * spline.get_time_scale() * ACCELERATION_DISPLAY_MULTIPLIER).to_3d(ROBOT_NODE_HEIGHT).to_raylib(), GREEN);
 
 	            for (Node &spline_point: spline.get_nodes()) {  
 	                const float size = .2f;
@@ -282,10 +347,10 @@ public:
 
 			EndMode3D();
 			DrawFPS(WINDOW.x * 0.9f, WINDOW.y * 0.05f);
-	        DrawText(std::format("Time {0:.2f} / {1:.2f}", current_time, spline.index_to_time(spline.get_index_total())).c_str(), 25, 20, 20, BLACK);
-	        DrawText(std::format("Position {0:.2f} / {1:.2f}", current_position, path_length).c_str(), 25, 40, 20, BLACK);
-	        DrawText(std::format("Velocity {0:.2f} / {1:.2f}", motion.velocity.magnitude(), MAX_VELOCITY).c_str(), 25, 60, 20, BLACK);
-	        DrawText(std::format("Acceleration {0:.2f} / {1:.2f}", motion.acceleration.magnitude(), MAX_ACCELERATION).c_str(), 25, 80, 20, BLACK);
+	        DrawText(std::format("Time {0:.2f} / {1:.2f}", current_time, spline.index_to_time(spline.get_index_total())).c_str(), 25, 20, 20, WHITE);
+	        DrawText(std::format("Position {0:.2f} / {1:.2f}", current_position, path_length).c_str(), 25, 40, 20, WHITE);
+	        DrawText(std::format("Velocity {0:.2f} / {1:.2f}", motion.velocity.magnitude(), MAX_VELOCITY).c_str(), 25, 60, 20, WHITE);
+	        DrawText(std::format("Acceleration {0:.2f} / {1:.2f}", motion.acceleration.magnitude(), MAX_ACCELERATION).c_str(), 25, 80, 20, WHITE);
 
 	        if (does_overspeed) {
 	            DrawText("Warning: Path Exceeds Speed Constraint", 30, WINDOW.y - 60, 20, YELLOW);

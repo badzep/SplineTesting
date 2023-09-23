@@ -12,6 +12,8 @@ constexpr Vector2 WINDOW = {1000, 1000};
 constexpr float VELOCITY_DISPLAY_MULTIPLIER = 0.25f;
 constexpr float ACCELERATION_DISPLAY_MULTIPLIER = 0.05f;
 
+constexpr float MINIMUM_SPLINE_DURATION = 0.25f;
+
 constexpr Color PATH_COLOR = {10, 200, 100, 200};
 
 constexpr float PATH_INDEX_DELTA = 1e-3; // time step size when drawing path
@@ -35,7 +37,14 @@ constexpr float TWO_FEET = 2.0f;
 constexpr float ONE_INCH = 1.0f / 12.0f;
 constexpr float TWO_INCHES = 1.0f / 6.0f;
 
+constexpr float NODE_SIZE = 0.07f;
 constexpr float PATH_HEIGHT = 0.1f;
+constexpr float VELOCITY_NODE_HEIGHT = PATH_HEIGHT + NODE_SIZE;
 constexpr float ROBOT_HEIGHT = 0.6f;
+constexpr float ROBOT_NODE_HEIGHT = ROBOT_HEIGHT + NODE_SIZE;
 
 static Font font;
+
+constexpr static bool LIGHT_ENABLED = true;
+constexpr static int LIGHT_TYPE = 1;
+constexpr Color LIGHT = {40,40,40};

@@ -108,12 +108,18 @@ void input(Field2d &field2d, Field3d &field3d) {
 
     if (IsKeyDown(KEY_Z)) {
         spline.total_duration -= duration_edit_speed;
+        if (spline.total_duration < MINIMUM_SPLINE_DURATION) {
+            spline.total_duration = MINIMUM_SPLINE_DURATION;
+        }
         reset();
     }
 
-    if (mode == Mode::TWO_DIMENSIONAL and IsMouseButtonDown(MOUSE_LEFT_BUTTON)) {
-        field2d.drag_points();
+    if (IsMouseButtonDown(MOUSE_LEFT_BUTTON)) {
+        if (mode == Mode::TWO_DIMENSIONAL) {
+            field2d.drag_points();
+        }
     }
+    
 
     if (IsKeyPressed(KEY_P)) {
         spline.print_parameters();
