@@ -113,11 +113,6 @@ public:
             + start_point.velocity * (6.0f * region_index - 4.0f)
             + end_point.position * (6.0f - 12.0f * region_index)
             + end_point.velocity * (6.0f * region_index - 2.0f),
-
-            // start_point.position * (12.0f)
-            // + start_point.velocity * (6.0f)
-            // + end_point.position * (-12.0f)
-            // + end_point.velocity * (6.0f)
         };
     }
 };

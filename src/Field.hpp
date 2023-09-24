@@ -1,15 +1,16 @@
 #pragma once
 
 
+#include <algorithm>
 #include <raylib.h>
 #include <thread>
 
 
 #include "Constants.hpp"
 #include "Vector.hpp"
-#include "Hermite.hpp"
 #include "Static.hpp"
-
+// #include "Hermite.hpp"
+#include "Splines.hpp"
 
 
 class Field2d {
@@ -27,67 +28,74 @@ public:
 				ClearBackground({100,100,100,255});
 				this->draw_grid();
 				this->draw_field();
-				float path_index = 0;
+				float path_time = 0;
 				float path_length = 0;
 	            bool does_overspeed = false;
 	            bool does_over_acceleration = false;
 	            while (true) {
-	                Motion path_motion = spline.get_motion_at(path_index);
-	                path_motion.velocity *= spline.get_time_scale();
-	                path_motion.acceleration *= spline.get_time_scale();
-	                path_length += path_motion.position.get_distance_to(spline.get_position_at(path_index + PATH_INDEX_DELTA));
-	                bool overspeed = path_motion.velocity.magnitude() > MAX_VELOCITY;
+	                Vec2<float> position = spline.get_position_at(path_time);
+	                Vec2<float> velocity = spline.get_velocity_at(path_time);
+	                Vec2<float> acceleration = spline.get_acceleration_at(path_time);
+	                path_length += position.get_distance_to(spline.get_position_at(path_time + PATH_INDEX_DELTA));
+	                bool overspeed = velocity.magnitude() > MAX_VELOCITY;
 	                if (overspeed) {
 	                    does_overspeed = true;
 	                }
-	                bool over_acceleration = path_motion.acceleration.magnitude() > MAX_ACCELERATION;
+	                bool over_acceleration = acceleration.magnitude() > MAX_ACCELERATION;
 	                if (over_acceleration) {
 	                    does_over_acceleration = true;
 	                }
 	                if (overspeed and over_acceleration) {
-	                    DrawLineField(path_motion.position, spline.get_position_at(path_index + PATH_INDEX_DELTA), 0.05f, RED);
+	                    DrawLineField(position, spline.get_position_at(path_time + PATH_INDEX_DELTA), 0.05f, RED);
 	                } else if (over_acceleration) {
-	                    DrawLineField(path_motion.position, spline.get_position_at(path_index + PATH_INDEX_DELTA), 0.04f, ORANGE);
+	                    DrawLineField(position, spline.get_position_at(path_time + PATH_INDEX_DELTA), 0.04f, ORANGE);
 	                } else if (overspeed) {
-	                    DrawLineField(path_motion.position, spline.get_position_at(path_index + PATH_INDEX_DELTA), 0.04f, YELLOW);
+	                    DrawLineField(position, spline.get_position_at(path_time + PATH_INDEX_DELTA), 0.04f, YELLOW);
 	                } else {
-	                    DrawLineField(path_motion.position, spline.get_position_at(path_index + PATH_INDEX_DELTA), 0.03f, PATH_COLOR);
+	                    DrawLineField(position, spline.get_position_at(path_time + PATH_INDEX_DELTA), 0.03f, PATH_COLOR);
 	                }
 
-	                if (path_index > spline.get_index_total() - PATH_INDEX_DELTA) {
+	                path_time += PATH_INDEX_DELTA; 
+	                if (path_time + PATH_INDEX_DELTA >= spline.get_duration()) {
 	                    break;
 	                }
-	                path_index += PATH_INDEX_DELTA;  
 	            }
 
-	            for (Node &spline_point: spline.get_nodes()) {
-	                DrawLineField(spline_point.position, spline_point.position.add(spline_point.velocity * spline.get_time_scale() * VELOCITY_DISPLAY_MULTIPLIER), 0.015f, {10, 200, 200, 240});
-	                DrawCircleField(spline_point.position.add(spline_point.velocity * spline.get_time_scale() * VELOCITY_DISPLAY_MULTIPLIER), NODE_SIZE, {10, 200, 200, 240});
-	                DrawCircleField(spline_point.position, NODE_SIZE, PATH_COLOR);
+	            for (unsigned int index = 0; index < spline.get_length(); index++) {
+	            	float time = spline.index_to_time(index);
+	            	Vec2<float> position = spline.get_position_at(time);
+	            	Vec2<float> velocity = spline.get_velocity_at(time);
+	            	DrawLineField(position, position.add(velocity * VELOCITY_DISPLAY_MULTIPLIER), 0.015f, {10, 200, 200, 240});
+	                DrawCircleField(position.add(velocity * VELOCITY_DISPLAY_MULTIPLIER), NODE_SIZE, {10, 200, 200, 240});
+	                DrawCircleField(position, NODE_SIZE, PATH_COLOR);
 	            }
-	            Motion motion = spline.get_motion_at(current_time * spline.get_time_scale());
-	            motion.velocity.multiply_in_place(spline.get_time_scale());
-	            motion.acceleration.multiply_in_place(spline.get_time_scale());
 
-	            DrawPolyField(motion.position, 4, ROBOT_SIZE / 2.0f, (motion.velocity.atan2() / PI) * 180 + 45, {200, 10, 200, 175});
+	            Vec2<float> position = spline.get_position_at(current_time);
+                Vec2<float> velocity = spline.get_velocity_at(current_time);
+                Vec2<float> acceleration = spline.get_acceleration_at(current_time);
 
-	            DrawLineField(motion.position, motion.position.add(motion.velocity.multiply(spline.get_time_scale()).multiply(VELOCITY_DISPLAY_MULTIPLIER)), 0.025f, BLUE);
-	            DrawLineField(motion.position.add(motion.velocity * spline.get_time_scale() * VELOCITY_DISPLAY_MULTIPLIER), motion.position.add(motion.velocity * spline.get_time_scale() * VELOCITY_DISPLAY_MULTIPLIER).add(motion.acceleration * spline.get_time_scale() * ACCELERATION_DISPLAY_MULTIPLIER), 0.025, GREEN);
+	            DrawPolyField(position, 4, ROBOT_SIZE / 2.0f, (velocity.atan2() / PI) * 180 + 45, {200, 10, 200, 175});
 
-	            for (Node &spline_point: spline.get_nodes()) {  
-	                const float size = .2f;
+	            DrawLineField(position, position.add(velocity.multiply(VELOCITY_DISPLAY_MULTIPLIER)), 0.025f, BLUE);
+	            DrawLineField(position.add(velocity * VELOCITY_DISPLAY_MULTIPLIER), position.add(velocity  * VELOCITY_DISPLAY_MULTIPLIER).add(acceleration * ACCELERATION_DISPLAY_MULTIPLIER), 0.025, GREEN);
+
+	            for (unsigned int index = 0; index < spline.get_length(); index++) {
+	            	float time = spline.index_to_time(index);
+	            	// printf("i: %i t: %f\n", index, time);
+	            	Vec2<float> position = spline.get_position_at(time);
+	            	Vec2<float> velocity = spline.get_velocity_at(time);
+	            	const float size = .2f;
 	                const float spacing = .01f;
-	                DrawTextField(("Pos: " + spline_point.position.to_string_2f()).c_str(), spline_point.position.add({0.3f, -0.1f}), size, spacing, BLACK);
-	                DrawTextField(std::format("Vel: {0:.2f} ft/s", spline_point.velocity.multiply(spline.get_time_scale()).magnitude()).c_str(), spline_point.position.add({-0.2f, -0.1f}), size, spacing, BLACK);
-	                DrawTextField(spline_point.velocity.to_string_2f().c_str(), spline_point.position.add({-0.4f, -0.1f}), size, spacing, BLACK);
+	                DrawTextField(("Pos: " + position.to_string_2f()).c_str(), position.add({0.3f, -0.1f}), size, spacing, BLACK);
+	                DrawTextField(std::format("Vel: {0:.2f} ft/s", velocity.magnitude()).c_str(), position.add({-0.2f, -0.1f}), size, spacing, BLACK);
+	                DrawTextField(velocity.to_string_2f().c_str(), position.add({-0.4f, -0.1f}), size, spacing, BLACK);
 	            }
-
 			EndMode2D();
 			DrawFPS(WINDOW.x * 0.9f, WINDOW.y * 0.05f);
-	        DrawText(std::format("Time {0:.2f} / {1:.2f}", current_time, spline.index_to_time(spline.get_index_total())).c_str(), 25, 20, 20, BLACK);
+	        DrawText(std::format("Time {0:.2f} / {1:.2f}", current_time, spline.get_duration()).c_str(), 25, 20, 20, BLACK);
 	        DrawText(std::format("Position {0:.2f} / {1:.2f}", current_position, path_length).c_str(), 25, 40, 20, BLACK);
-	        DrawText(std::format("Velocity {0:.2f} / {1:.2f}", motion.velocity.magnitude(), MAX_VELOCITY).c_str(), 25, 60, 20, BLACK);
-	        DrawText(std::format("Acceleration {0:.2f} / {1:.2f}", motion.acceleration.magnitude(), MAX_ACCELERATION).c_str(), 25, 80, 20, BLACK);
+	        DrawText(std::format("Velocity {0:.2f} / {1:.2f}", velocity.magnitude(), MAX_VELOCITY).c_str(), 25, 60, 20, BLACK);
+	        DrawText(std::format("Acceleration {0:.2f} / {1:.2f}", acceleration.magnitude(), MAX_ACCELERATION).c_str(), 25, 80, 20, BLACK);
 
 	        if (does_overspeed) {
 	            DrawText("Warning: Path Exceeds Speed Constraint", 30, WINDOW.y - 60, 20, YELLOW);
@@ -99,9 +107,9 @@ public:
 
 		if (!paused) {
 	        current_time += GetFrameTime();
-	        current_position += motion.velocity.magnitude() * GetFrameTime();
+	        current_position += velocity.magnitude() * GetFrameTime();
 
-	        if (current_position > path_length) {
+	        if (current_time > spline.get_duration()) {
 	            reset();
 	        }
     	}
@@ -154,20 +162,24 @@ public:
 
 	void drag_points() {
 	    Vec2<float> clicked_position = Vec2<float>(GetScreenToWorld2D(GetMousePosition(), this->camera)).screen_to_field();
-	    for (Node &spline_point: spline.get_nodes()) {
-	        if (spline_point.position.add(spline_point.velocity * spline.get_time_scale() * VELOCITY_DISPLAY_MULTIPLIER).get_distance_to(clicked_position - Vec2<float>(GetMouseDelta()).screen_to_field() / this->camera.zoom) <= GRAB_DISTANCE / this->camera.zoom) {
-	            spline_point.velocity = (clicked_position - spline_point.position) / (VELOCITY_DISPLAY_MULTIPLIER * spline.get_time_scale());
+	    for (unsigned int index = 0; index < spline.get_length(); index++) {
+        	float time = spline.index_to_time(index);
+        	Vec2<float> position = spline.get_position_at(time);
+        	Vec2<float> velocity = spline.get_velocity_at(time);
+        	
+        	if (position.add(velocity * VELOCITY_DISPLAY_MULTIPLIER).get_distance_to(clicked_position - Vec2<float>(GetMouseDelta()).screen_to_field() / this->camera.zoom) <= GRAB_DISTANCE / this->camera.zoom) {
+	            velocity = (clicked_position - position) / (VELOCITY_DISPLAY_MULTIPLIER);
+	            spline.update_point(index, position, velocity / spline.get_time_scale());
 	            reset();
 	            return;
 	        }
 
-	        if (spline_point.position.get_distance_to(clicked_position - Vec2<float>(GetMouseDelta()).screen_to_field() / this->camera.zoom) <= GRAB_DISTANCE / this->camera.zoom) { 
-	            spline_point.position.x = clicked_position.x;
-	            spline_point.position.y = clicked_position.y;
+	        if (position.get_distance_to(clicked_position - Vec2<float>(GetMouseDelta()).screen_to_field() / this->camera.zoom) <= GRAB_DISTANCE / this->camera.zoom) { 
+	        	spline.update_point(index, clicked_position, velocity / spline.get_time_scale());
 	            reset();
 	            return;
 	        }
-	    }
+        }
 	}
 };
 
@@ -191,6 +203,9 @@ static void make_light(Shader &lighting_shader, Vector3 position, Color color) {
     lights_count++;
 }
 
+
+
+
 class Field3d {
 public:
 	Camera3D camera = {};
@@ -202,7 +217,7 @@ public:
 	Model thin_pipe;
 
 	explicit Field3d() {
-		camera.position = {0, 0, 1};
+		camera.position = {0, 0, 3};
 		camera.target = {1, 0, 1};
 		camera.fovy = 60;
 		camera.up = {0.0f, 0.0f, 1.0f};
@@ -311,68 +326,76 @@ public:
 				
 				this->draw_grid();
 				this->draw_field();
-				float path_index = 0;
+				float path_time = 0;
 				float path_length = 0;
 	            bool does_overspeed = false;
 	            bool does_over_acceleration = false;
 	            while (true) {
-	                Motion path_motion = spline.get_motion_at(path_index);
-	                path_motion.velocity *= spline.get_time_scale();
-	                path_motion.acceleration *= spline.get_time_scale();
-	                path_length += path_motion.position.get_distance_to(spline.get_position_at(path_index + PATH_INDEX_DELTA));
-	                bool overspeed = path_motion.velocity.magnitude() > MAX_VELOCITY;
+	                Vec2<float> position = spline.get_position_at(path_time);
+	                Vec2<float> velocity = spline.get_velocity_at(path_time);
+	                Vec2<float> acceleration = spline.get_acceleration_at(path_time);
+	                path_length += position.get_distance_to(spline.get_position_at(path_time + PATH_INDEX_DELTA));
+	                bool overspeed = velocity.magnitude() > MAX_VELOCITY;
 	                if (overspeed) {
 	                    does_overspeed = true;
 	                }
-	                bool over_acceleration = path_motion.acceleration.magnitude() > MAX_ACCELERATION;
+	                bool over_acceleration = acceleration.magnitude() > MAX_ACCELERATION;
 	                if (over_acceleration) {
 	                    does_over_acceleration = true;
 	                }
 	                if (overspeed and over_acceleration) {
-	                    DrawLine3D(path_motion.position.to_3d(PATH_HEIGHT).to_raylib(), spline.get_position_at(path_index + PATH_INDEX_DELTA).to_3d(PATH_HEIGHT).to_raylib(), RED);
+	                    DrawLine3D(position.to_3d(PATH_HEIGHT).to_raylib(), spline.get_position_at(path_time + PATH_INDEX_DELTA).to_3d(PATH_HEIGHT).to_raylib(), RED);
 	                } else if (over_acceleration) {
-	                    DrawLine3D(path_motion.position.to_3d(PATH_HEIGHT).to_raylib(), spline.get_position_at(path_index + PATH_INDEX_DELTA).to_3d(PATH_HEIGHT).to_raylib(), ORANGE);
+	                    DrawLine3D(position.to_3d(PATH_HEIGHT).to_raylib(), spline.get_position_at(path_time + PATH_INDEX_DELTA).to_3d(PATH_HEIGHT).to_raylib(), ORANGE);
 	                } else if (overspeed) {
-	                    DrawLine3D(path_motion.position.to_3d(PATH_HEIGHT).to_raylib(), spline.get_position_at(path_index + PATH_INDEX_DELTA).to_3d(PATH_HEIGHT).to_raylib(), YELLOW);
+	                    DrawLine3D(position.to_3d(PATH_HEIGHT).to_raylib(), spline.get_position_at(path_time + PATH_INDEX_DELTA).to_3d(PATH_HEIGHT).to_raylib(), YELLOW);
 	                } else {
-	                    DrawLine3D(path_motion.position.to_3d(PATH_HEIGHT).to_raylib(), spline.get_position_at(path_index + PATH_INDEX_DELTA).to_3d(PATH_HEIGHT).to_raylib(), PATH_COLOR);
+	                    DrawLine3D(position.to_3d(PATH_HEIGHT).to_raylib(), spline.get_position_at(path_time + PATH_INDEX_DELTA).to_3d(PATH_HEIGHT).to_raylib(), PATH_COLOR);
 	                }
 
-	                if (path_index > spline.get_index_total() - PATH_INDEX_DELTA) {
+	                path_time += PATH_INDEX_DELTA; 
+	                if (path_time + PATH_INDEX_DELTA >= spline.get_duration()) {
 	                    break;
 	                }
-	                path_index += PATH_INDEX_DELTA;  
+	                 
 	            }
 
-	            for (Node &spline_point: spline.get_nodes()) {
-	                DrawLine3D(spline_point.position.to_3d(VELOCITY_NODE_HEIGHT).to_raylib(), spline_point.position.add(spline_point.velocity * spline.get_time_scale() * VELOCITY_DISPLAY_MULTIPLIER).to_3d(VELOCITY_NODE_HEIGHT).to_raylib(), {10, 200, 200, 240});
-	                DrawSphere(spline_point.position.add(spline_point.velocity * spline.get_time_scale() * VELOCITY_DISPLAY_MULTIPLIER).to_3d(VELOCITY_NODE_HEIGHT).to_raylib(), NODE_SIZE, {10, 200, 200, 240});
-	                DrawLine3D(spline_point.position.to_3d(PATH_HEIGHT).to_raylib(), spline_point.position.to_3d(VELOCITY_NODE_HEIGHT).to_raylib(), PATH_COLOR);
-	                DrawSphere(spline_point.position.to_3d(PATH_HEIGHT).to_raylib(), NODE_SIZE, PATH_COLOR);
+	            for (unsigned int index = 0; index < spline.get_length(); index++) {
+	            	float time = spline.index_to_time(index);
+	            	Vec2<float> position = spline.get_position_at(time);
+	            	Vec2<float> velocity = spline.get_velocity_at(time);
+	            	DrawLine3D(position.to_3d(VELOCITY_NODE_HEIGHT).to_raylib(), position.add(velocity * VELOCITY_DISPLAY_MULTIPLIER).to_3d(VELOCITY_NODE_HEIGHT).to_raylib(), {10, 200, 200, 240});
+	            	DrawSphere(position.add(velocity * VELOCITY_DISPLAY_MULTIPLIER).to_3d(VELOCITY_NODE_HEIGHT).to_raylib(), NODE_SIZE, {10, 200, 200, 240});
+	                DrawLine3D(position.to_3d(PATH_HEIGHT).to_raylib(), position.to_3d(VELOCITY_NODE_HEIGHT).to_raylib(), PATH_COLOR);
+	                DrawSphere(position.to_3d(PATH_HEIGHT).to_raylib(), NODE_SIZE, PATH_COLOR);
 	            }
-	            Motion motion = spline.get_motion_at(current_time * spline.get_time_scale());
-	            motion.velocity.multiply_in_place(spline.get_time_scale());
-	            motion.acceleration.multiply_in_place(spline.get_time_scale());
 
-	            DrawModelEx(this->robot_model, motion.position.to_3d(ROBOT_HEIGHT / 2.0f).to_raylib(),{0,0,1}, (motion.velocity.atan2() / PI) * 180, {1,1,1}, {200, 10, 200, 175});
+	            Vec2<float> position = spline.get_position_at(current_time);
+                Vec2<float> velocity = spline.get_velocity_at(current_time);
+                Vec2<float> acceleration = spline.get_acceleration_at(current_time);
 
-	            DrawLine3D(motion.position.to_3d(ROBOT_NODE_HEIGHT).to_raylib(), motion.position.add(motion.velocity.multiply(spline.get_time_scale()).multiply(VELOCITY_DISPLAY_MULTIPLIER)).to_3d(ROBOT_NODE_HEIGHT).to_raylib(), BLUE);
-	            DrawLine3D(motion.position.add(motion.velocity * spline.get_time_scale() * VELOCITY_DISPLAY_MULTIPLIER).to_3d(ROBOT_NODE_HEIGHT).to_raylib(), motion.position.add(motion.velocity * spline.get_time_scale() * VELOCITY_DISPLAY_MULTIPLIER).add(motion.acceleration * spline.get_time_scale() * ACCELERATION_DISPLAY_MULTIPLIER).to_3d(ROBOT_NODE_HEIGHT).to_raylib(), GREEN);
+	            DrawModelEx(this->robot_model, position.to_3d(ROBOT_HEIGHT / 2.0f).to_raylib(),{0,0,1}, (velocity.atan2() / PI) * 180, {1,1,1}, {200, 10, 200, 175});
 
-	            for (Node &spline_point: spline.get_nodes()) {  
-	                const float size = .2f;
+	            DrawLine3D(position.to_3d(ROBOT_NODE_HEIGHT).to_raylib(), position.add(velocity.multiply(VELOCITY_DISPLAY_MULTIPLIER)).to_3d(ROBOT_NODE_HEIGHT).to_raylib(), BLUE);
+	            DrawLine3D(position.add(velocity * VELOCITY_DISPLAY_MULTIPLIER).to_3d(ROBOT_NODE_HEIGHT).to_raylib(), position.add(velocity * VELOCITY_DISPLAY_MULTIPLIER).add(acceleration * ACCELERATION_DISPLAY_MULTIPLIER).to_3d(ROBOT_NODE_HEIGHT).to_raylib(), GREEN);
+
+	            for (unsigned int index = 0; index < spline.get_length(); index++) {
+	            	float time = spline.index_to_time(index);
+	            	// printf("i: %i t: %f\n", index, time);
+	            	Vec2<float> position = spline.get_position_at(time);
+	            	Vec2<float> velocity = spline.get_velocity_at(time);
+	            	const float size = .2f;
 	                const float spacing = .01f;
-	                DrawTextField(("Pos: " + spline_point.position.to_string_2f()).c_str(), spline_point.position.add({0.3f, -0.1f}), size, spacing, BLACK);
-	                DrawTextField(std::format("Vel: {0:.2f} ft/s", spline_point.velocity.multiply(spline.get_time_scale()).magnitude()).c_str(), spline_point.position.add({-0.2f, -0.1f}), size, spacing, BLACK);
-	                DrawTextField(spline_point.velocity.to_string_2f().c_str(), spline_point.position.add({-0.4f, -0.1f}), size, spacing, BLACK);
+	                DrawTextField(("Pos: " + position.to_string_2f()).c_str(), position.add({0.3f, -0.1f}), size, spacing, BLACK);
+	                DrawTextField(std::format("Vel: {0:.2f} ft/s", velocity.magnitude()).c_str(), position.add({-0.2f, -0.1f}), size, spacing, BLACK);
+	                DrawTextField(velocity.to_string_2f().c_str(), position.add({-0.4f, -0.1f}), size, spacing, BLACK);
 	            }
-
 			EndMode3D();
 			DrawFPS(WINDOW.x * 0.9f, WINDOW.y * 0.05f);
-	        DrawText(std::format("Time {0:.2f} / {1:.2f}", current_time, spline.index_to_time(spline.get_index_total())).c_str(), 25, 20, 20, WHITE);
+	        DrawText(std::format("Time {0:.2f} / {1:.2f}", current_time, spline.get_duration()).c_str(), 25, 20, 20, WHITE);
 	        DrawText(std::format("Position {0:.2f} / {1:.2f}", current_position, path_length).c_str(), 25, 40, 20, WHITE);
-	        DrawText(std::format("Velocity {0:.2f} / {1:.2f}", motion.velocity.magnitude(), MAX_VELOCITY).c_str(), 25, 60, 20, WHITE);
-	        DrawText(std::format("Acceleration {0:.2f} / {1:.2f}", motion.acceleration.magnitude(), MAX_ACCELERATION).c_str(), 25, 80, 20, WHITE);
+	        DrawText(std::format("Velocity {0:.2f} / {1:.2f}", velocity.magnitude(), MAX_VELOCITY).c_str(), 25, 60, 20, WHITE);
+	        DrawText(std::format("Acceleration {0:.2f} / {1:.2f}", acceleration.magnitude(), MAX_ACCELERATION).c_str(), 25, 80, 20, WHITE);
 
 	        if (does_overspeed) {
 	            DrawText("Warning: Path Exceeds Speed Constraint", 30, WINDOW.y - 60, 20, YELLOW);
@@ -384,9 +407,9 @@ public:
 
 		if (!paused) {
 	        current_time += GetFrameTime();
-	        current_position += motion.velocity.magnitude() * GetFrameTime();
+	        current_position += velocity.magnitude() * GetFrameTime();
 
-	        if (current_position > path_length) {
+	        if (current_time > spline.get_duration()) {
 	            reset();
 	        }
     	}

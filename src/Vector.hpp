@@ -234,6 +234,8 @@ public:
     T y;
 
     Vec2(const T x, const T y): x(x), y(y) {    }
+    Vec2(Vec2<T>& other): x(other.x), y(other.y) {   }
+    Vec2(const Vec2<T>& other): x(other.x), y(other.y) {   }
 
     explicit Vec2(const Vector2 vector): x(vector.x), y(vector.y) {    }
 

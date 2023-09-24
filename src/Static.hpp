@@ -1,6 +1,7 @@
 #pragma once
 
-#include "Hermite.hpp"
+// #include "Hermite.hpp"
+#include "Splines.hpp"
 
 static bool paused = false;
 static float current_time = 0;

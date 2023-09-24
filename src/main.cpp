@@ -6,11 +6,13 @@
 #include <filesystem>
 
 
-#include "Hermite.hpp"
 #include "Constants.hpp"
 #include "Static.hpp"
 #include "Vector.hpp"
 #include "Field.hpp"
+
+// #include "Hermite.hpp"
+#include "Splines.hpp"
 
 
 enum class Mode {
@@ -21,14 +23,22 @@ enum class Mode {
 Mode mode = Mode::TWO_DIMENSIONAL;
 
 void setup_spline() {
-    spline.total_duration = 5;
-    spline.add_point(Node{Vec2<float>{4.15, 2.9625}, Vec2<float>{-4.16667, 7.94729e-07}});
-    spline.add_point(Node{Vec2<float>{4.76837e-07, 3.025}, Vec2<float>{-4.125, 0.333333}});
-    spline.add_point(Node{Vec2<float>{-4.00399, 2.99458}, Vec2<float>{-3.73855, -1.7945}});
-    spline.add_point(Node{Vec2<float>{-4.99096, 0}, Vec2<float>{0, -4.14979}});
-    spline.add_point(Node{Vec2<float>{-3.97034, -2.98336}, Vec2<float>{4.11241, -0.560783}});
-    spline.add_point(Node{Vec2<float>{0.179451, -3.01701}, Vec2<float>{4.14979, 0.186927}});
-    spline.add_point(Node{Vec2<float>{3.84697, -2.80391}, Vec2<float>{2.75, 0.625}});
+    // spline.total_duration = 5;
+    // spline.add_point(Node{Vec2<float>{4.15, 2.9625}, Vec2<float>{-4.16667, 7.94729e-07}});
+    // spline.add_point(Node{Vec2<float>{4.76837e-07, 3.025}, Vec2<float>{-4.125, 0.333333}});
+    // spline.add_point(Node{Vec2<float>{-4.00399, 2.99458}, Vec2<float>{-3.73855, -1.7945}});
+    // spline.add_point(Node{Vec2<float>{-4.99096, 0}, Vec2<float>{0, -4.14979}});
+    // spline.add_point(Node{Vec2<float>{-3.97034, -2.98336}, Vec2<float>{4.11241, -0.560783}});
+    // spline.add_point(Node{Vec2<float>{0.179451, -3.01701}, Vec2<float>{4.14979, 0.186927}});
+    // spline.add_point(Node{Vec2<float>{3.84697, -2.80391}, Vec2<float>{2.75, 0.625}});
+    spline.set_duration(7.0f);
+    spline.add_point(Vec2<float>{4.15, 2.9625}, Vec2<float>{-4.16667, 7.94729e-07});
+    spline.add_point(Vec2<float>{4.76837e-07, 3.025}, Vec2<float>{-4.125, 0.333333});
+    spline.add_point(Vec2<float>{-4.00399, 2.99458}, Vec2<float>{-3.73855, -1.7945});
+    spline.add_point(Vec2<float>{-4.99096, 0}, Vec2<float>{0, -4.14979});
+    spline.add_point(Vec2<float>{-3.97034, -2.98336}, Vec2<float>{4.11241, -0.560783});
+    spline.add_point(Vec2<float>{0.179451, -3.01701}, Vec2<float>{4.14979, 0.186927});
+    spline.add_point(Vec2<float>{3.84697, -2.80391}, Vec2<float>{2.75, 0.625});
 }
 
 void input(Field2d &field2d, Field3d &field3d) {
@@ -102,14 +112,14 @@ void input(Field2d &field2d, Field3d &field3d) {
     // }
 
     if (IsKeyDown(KEY_X)) {
-        spline.total_duration += duration_edit_speed;
+        spline.set_duration(spline.get_duration() + duration_edit_speed);
         reset();
     }
 
     if (IsKeyDown(KEY_Z)) {
-        spline.total_duration -= duration_edit_speed;
-        if (spline.total_duration < MINIMUM_SPLINE_DURATION) {
-            spline.total_duration = MINIMUM_SPLINE_DURATION;
+        spline.set_duration(spline.get_duration() - duration_edit_speed);
+        if (spline.get_duration() < MINIMUM_SPLINE_DURATION) {
+            spline.set_duration(MINIMUM_SPLINE_DURATION);
         }
         reset();
     }
@@ -121,9 +131,9 @@ void input(Field2d &field2d, Field3d &field3d) {
     }
     
 
-    if (IsKeyPressed(KEY_P)) {
-        spline.print_parameters();
-    }
+    // if (IsKeyPressed(KEY_P)) {
+    //     spline.print_parameters();
+    // }
 }
 
 void update(Field2d &field2d, Field3d &field3d) {
@@ -138,15 +148,15 @@ void update(Field2d &field2d, Field3d &field3d) {
 int main() {
     setup_spline();
 
+    if (spline.get_length() <= 1) {
+        printf("Spling must have at least 2 points\n");
+        return 0;
+    }
+
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     SetConfigFlags(FLAG_MSAA_4X_HINT);
     InitWindow((int) WINDOW.x, (int) WINDOW.y, "Hermite Spline Test");
     SetTargetFPS(200);
-
-    if (spline.get_point_count() <= 1) {
-        printf("Spling must have at least 2 points\n");
-        return 0;
-    }  
 
     font = LoadFont("../res/jetbrains_mono.ttf"); // literally the best one on god
 
