@@ -2,6 +2,8 @@
 
 
 #include <algorithm>
+#include <complex>
+#include <iostream>
 #include <raylib.h>
 #include <thread>
 
@@ -9,17 +11,22 @@
 #include "Constants.hpp"
 #include "Vector.hpp"
 #include "Static.hpp"
-// #include "Hermite.hpp"
 #include "Splines.hpp"
 
 
 class Field2d {
 public:
 	Camera2D camera = {};
+	// CubicSpline test_spline;
+	// CubicSpline test_spline2;
+	Spline test_spline;
+	float test_time = 0;
 
-	explicit Field2d() {
+	Field2d() {
 		camera.zoom = 80.0f;
     	camera.offset = {(float) WINDOW.x / 2.0f, (float) WINDOW.y / 2.0f};
+    	test_spline.add_spline(hermite_factory(0, 2, {0,0}, {2,-2}, {-2,4}, {0,-1}));
+    	test_spline.add_spline(hermite_factory(2, 3, {-2,4}, {0,-1}, {0,0}, {2,-2}));
 	}
 
 	void render() {
@@ -61,6 +68,18 @@ public:
 	                }
 	            }
 
+	            path_time = 0;
+	            while (true) {
+	                Vec2<float> position = test_spline.get_position_at(path_time);
+	                Vec2<float> velocity = test_spline.get_velocity_at(path_time);
+	                DrawLineField(position, test_spline.get_position_at(path_time + PATH_INDEX_DELTA), 0.03f, {(unsigned char)(velocity.magnitude() / 10.0f), 50, 50, 200});
+
+	                path_time += PATH_INDEX_DELTA; 
+	                if (path_time + PATH_INDEX_DELTA >= test_spline.total_duration) {
+	                    break;
+	                }
+	            }
+
 	            for (unsigned int index = 0; index < spline.get_length(); index++) {
 	            	float time = spline.index_to_time(index);
 	            	Vec2<float> position = spline.get_position_at(time);
@@ -70,14 +89,23 @@ public:
 	                DrawCircleField(position, NODE_SIZE, PATH_COLOR);
 	            }
 
+	            {
+	            	Vec2<float> position = test_spline.get_position_at(test_time);
+	                Vec2<float> velocity = test_spline.get_velocity_at(test_time);
+	                Vec2<float> acceleration = test_spline.get_acceleration_at(test_time);
+	            	DrawPolyField(position, 4, ROBOT_SIZE / 2.0f, (velocity.atan2() / PI) * 180 + 45, {200, 10, 200, 175});
+	            	DrawLineField(position, position.add(velocity.multiply(VELOCITY_DISPLAY_MULTIPLIER)), 0.025f, BLUE);
+	            	DrawLineField(position.add(velocity * VELOCITY_DISPLAY_MULTIPLIER), position.add(velocity  * VELOCITY_DISPLAY_MULTIPLIER).add(acceleration * ACCELERATION_DISPLAY_MULTIPLIER), 0.025, GREEN);
+	            }
+	            
 	            Vec2<float> position = spline.get_position_at(current_time);
                 Vec2<float> velocity = spline.get_velocity_at(current_time);
                 Vec2<float> acceleration = spline.get_acceleration_at(current_time);
 
 	            DrawPolyField(position, 4, ROBOT_SIZE / 2.0f, (velocity.atan2() / PI) * 180 + 45, {200, 10, 200, 175});
-
 	            DrawLineField(position, position.add(velocity.multiply(VELOCITY_DISPLAY_MULTIPLIER)), 0.025f, BLUE);
 	            DrawLineField(position.add(velocity * VELOCITY_DISPLAY_MULTIPLIER), position.add(velocity  * VELOCITY_DISPLAY_MULTIPLIER).add(acceleration * ACCELERATION_DISPLAY_MULTIPLIER), 0.025, GREEN);
+	            
 
 	            for (unsigned int index = 0; index < spline.get_length(); index++) {
 	            	float time = spline.index_to_time(index);
@@ -90,6 +118,7 @@ public:
 	                DrawTextField(std::format("Vel: {0:.2f} ft/s", velocity.magnitude()).c_str(), position.add({-0.2f, -0.1f}), size, spacing, BLACK);
 	                DrawTextField(velocity.to_string_2f().c_str(), position.add({-0.4f, -0.1f}), size, spacing, BLACK);
 	            }
+
 			EndMode2D();
 			DrawFPS(WINDOW.x * 0.9f, WINDOW.y * 0.05f);
 	        DrawText(std::format("Time {0:.2f} / {1:.2f}", current_time, spline.get_duration()).c_str(), 25, 20, 20, BLACK);
@@ -111,6 +140,10 @@ public:
 
 	        if (current_time > spline.get_duration()) {
 	            reset();
+	        }
+	        test_time += GetFrameTime();
+	        if (test_time > this->test_spline.total_duration) {
+	        	test_time = 0;
 	        }
     	}
 	}
@@ -183,25 +216,7 @@ public:
 	}
 };
 
-static void make_light(Shader &lighting_shader, Vector3 position, Color color) {
-	static int lights_count = 0;
-	int enabledLoc = GetShaderLocation(lighting_shader, std::format("lights[{}].enabled", lights_count).c_str());
-    int typeLoc = GetShaderLocation(lighting_shader, std::format("lights[{}].type", lights_count).c_str());
-    int positionLoc = GetShaderLocation(lighting_shader, std::format("lights[{}].position", lights_count).c_str());
-    int targetLoc = GetShaderLocation(lighting_shader, std::format("lights[{}].target", lights_count).c_str());
-    int colorLoc = GetShaderLocation(lighting_shader, std::format("lights[{}].color", lights_count).c_str());
 
-    SetShaderValue(lighting_shader, enabledLoc, &LIGHT_ENABLED, SHADER_UNIFORM_INT);
-    SetShaderValue(lighting_shader, typeLoc, &LIGHT_TYPE, SHADER_UNIFORM_INT);
-    float _position[3] = {position.x, position.y, position.z};
-    SetShaderValue(lighting_shader, positionLoc, _position, SHADER_UNIFORM_VEC3);
-    float target[3] = {0,0,0};
-    SetShaderValue(lighting_shader, targetLoc, target, SHADER_UNIFORM_VEC3);
-    float _color[4] = {(float)color.r/(float)255, (float)color.g/(float)255,
-                       (float)color.b/(float)255, (float)color.a/(float)255};
-    SetShaderValue(lighting_shader, colorLoc, _color, SHADER_UNIFORM_VEC4);
-    lights_count++;
-}
 
 
 
@@ -209,8 +224,6 @@ static void make_light(Shader &lighting_shader, Vector3 position, Color color) {
 class Field3d {
 public:
 	Camera3D camera = {};
-	float fog_density;
-	Shader lighting_shader;
 	Model field_model;
 	Model robot_model;
 	Model thick_pipe;
@@ -223,28 +236,10 @@ public:
 		camera.up = {0.0f, 0.0f, 1.0f};
 		camera.projection = CAMERA_PERSPECTIVE;
 
-		this->lighting_shader = this->lighting_shader = LoadShader("../res/lighting.vs", "../res/fog.fs");
-		this->lighting_shader.locs[SHADER_LOC_VECTOR_VIEW] = GetShaderLocation(this->lighting_shader, "viewPos");
-
-		int fogDensityLoc = GetShaderLocation(this->lighting_shader, "fog_density");
-		this->fog_density = 0.0f;
-    	SetShaderValue(this->lighting_shader, fogDensityLoc, &this->fog_density, SHADER_UNIFORM_FLOAT);
-
-    	make_light(this->lighting_shader, {GRID_SIZE / 2.0f, GRID_SIZE / 2.0f, 3}, LIGHT);
-    	make_light(this->lighting_shader, {-GRID_SIZE / 2.0f, GRID_SIZE / 2.0f, 3}, LIGHT);
-    	make_light(this->lighting_shader, {GRID_SIZE / 2.0f, -GRID_SIZE / 2.0f, 3}, LIGHT);
-    	make_light(this->lighting_shader, {-GRID_SIZE / 2.0f, -GRID_SIZE / 2.0f, 3}, LIGHT);
-
-
     	this->field_model = LoadModelFromMesh(GenMeshCube(GRID_SIZE * 2.0f, GRID_SIZE * 2.0f, 1.0f));
 		this->robot_model = LoadModelFromMesh(GenMeshCube(ROBOT_SIZE, ROBOT_SIZE, ROBOT_HEIGHT));
 		this->thick_pipe = LoadModelFromMesh(GenMeshCylinder(mm_to_feet(30.0f), 1.0f, 10));
 		this->thin_pipe = LoadModelFromMesh(GenMeshCylinder(mm_to_feet(10.5f), 1.0f, 10));
-
-		this->field_model.materials[0].shader = this->lighting_shader;
-		this->robot_model.materials[0].shader = this->lighting_shader;
-		this->thin_pipe.materials[0].shader = this->lighting_shader;
-		this->thick_pipe.materials[0].shader = this->lighting_shader;
 	}
 
 	~Field3d() {
@@ -252,7 +247,6 @@ public:
 		UnloadModel(this->robot_model);
 		UnloadModel(this->thick_pipe);
 		UnloadModel(this->thin_pipe);
-		UnloadShader(this->lighting_shader);
 	}
 
 	void draw_grid() {
@@ -330,6 +324,7 @@ public:
 				float path_length = 0;
 	            bool does_overspeed = false;
 	            bool does_over_acceleration = false;
+
 	            while (true) {
 	                Vec2<float> position = spline.get_position_at(path_time);
 	                Vec2<float> velocity = spline.get_velocity_at(path_time);
@@ -356,8 +351,7 @@ public:
 	                path_time += PATH_INDEX_DELTA; 
 	                if (path_time + PATH_INDEX_DELTA >= spline.get_duration()) {
 	                    break;
-	                }
-	                 
+	                } 
 	            }
 
 	            for (unsigned int index = 0; index < spline.get_length(); index++) {
@@ -379,17 +373,6 @@ public:
 	            DrawLine3D(position.to_3d(ROBOT_NODE_HEIGHT).to_raylib(), position.add(velocity.multiply(VELOCITY_DISPLAY_MULTIPLIER)).to_3d(ROBOT_NODE_HEIGHT).to_raylib(), BLUE);
 	            DrawLine3D(position.add(velocity * VELOCITY_DISPLAY_MULTIPLIER).to_3d(ROBOT_NODE_HEIGHT).to_raylib(), position.add(velocity * VELOCITY_DISPLAY_MULTIPLIER).add(acceleration * ACCELERATION_DISPLAY_MULTIPLIER).to_3d(ROBOT_NODE_HEIGHT).to_raylib(), GREEN);
 
-	            for (unsigned int index = 0; index < spline.get_length(); index++) {
-	            	float time = spline.index_to_time(index);
-	            	// printf("i: %i t: %f\n", index, time);
-	            	Vec2<float> position = spline.get_position_at(time);
-	            	Vec2<float> velocity = spline.get_velocity_at(time);
-	            	const float size = .2f;
-	                const float spacing = .01f;
-	                DrawTextField(("Pos: " + position.to_string_2f()).c_str(), position.add({0.3f, -0.1f}), size, spacing, BLACK);
-	                DrawTextField(std::format("Vel: {0:.2f} ft/s", velocity.magnitude()).c_str(), position.add({-0.2f, -0.1f}), size, spacing, BLACK);
-	                DrawTextField(velocity.to_string_2f().c_str(), position.add({-0.4f, -0.1f}), size, spacing, BLACK);
-	            }
 			EndMode3D();
 			DrawFPS(WINDOW.x * 0.9f, WINDOW.y * 0.05f);
 	        DrawText(std::format("Time {0:.2f} / {1:.2f}", current_time, spline.get_duration()).c_str(), 25, 20, 20, WHITE);

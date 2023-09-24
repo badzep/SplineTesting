@@ -52,7 +52,3 @@ constexpr float WALL_HEIGHT = mm_to_feet(300.0f);
 constexpr float GOAL_ELEVATION = 0.5f;
 
 static Font font;
-
-constexpr static bool LIGHT_ENABLED = true;
-constexpr static int LIGHT_TYPE = 1;
-constexpr Color LIGHT = {40,40,40};
