@@ -17,6 +17,8 @@ public:
     T y;
     T z;
 
+    Vec3() {    }
+
     Vec3(const T x, const T y, const T z): x(x), y(y), z(z) {    }
 
     explicit Vec3(const Vector3 vector): x(vector.x), y(vector.y), z(vector.z) {    }
@@ -233,9 +235,8 @@ public:
     T x;
     T y;
 
+    Vec2() {    }
     Vec2(const T x, const T y): x(x), y(y) {    }
-    Vec2(Vec2<T>& other): x(other.x), y(other.y) {   }
-    Vec2(const Vec2<T>& other): x(other.x), y(other.y) {   }
 
     explicit Vec2(const Vector2 vector): x(vector.x), y(vector.y) {    }
 

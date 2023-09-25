@@ -11,18 +11,17 @@ Red = above max speed and acceleration
 
 
 ## Controls
-Click and drag to move points
 
-WASD for camera movement
+P = print out the spline parameters
 
-QE zoom in and out respectively
+2D Mode:
 
-Up arrow increases spline duration
+	Click and drag to move points
 
-Down arrow decreases spline duration
+3D Mode:
 
-Shift increases the speed all controls
+	WASD to move around
 
-P prints out the spline parameters
+	Mouse or arrow keys to look around
 
 *Note: all distances are in feet and times in seconds

@@ -14,6 +14,7 @@ constexpr float BASE_DURATION_EDIT_MULTIPLIER = 0.25f;
 constexpr float SPRINT_DURATION_EDIT_MULTIPLIER = BASE_DURATION_EDIT_MULTIPLIER * 10;
 
 constexpr Vector2 WINDOW = {1000, 1000};
+constexpr float DURATION_DISPLAY_MULTIPLIER = 0.6f;
 constexpr float VELOCITY_DISPLAY_MULTIPLIER = 0.25f;
 constexpr float ACCELERATION_DISPLAY_MULTIPLIER = 0.05f;
 
@@ -52,7 +53,3 @@ constexpr float WALL_HEIGHT = mm_to_feet(300.0f);
 constexpr float GOAL_ELEVATION = 0.5f;
 
 static Font font;
-
-constexpr static bool LIGHT_ENABLED = true;
-constexpr static int LIGHT_TYPE = 1;
-constexpr Color LIGHT = {40,40,40};
