@@ -11,11 +11,6 @@ Red = above max speed and acceleration
 
 
 ## Controls
-Z = decrease spline duration
-
-X = increase spline duration
-
-Shift = edit duration faster (while holding)
 
 P = print out the spline parameters
 

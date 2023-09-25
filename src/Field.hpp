@@ -17,16 +17,10 @@
 class Field2d {
 public:
 	Camera2D camera = {};
-	// CubicSpline test_spline;
-	// CubicSpline test_spline2;
-	Spline test_spline;
-	float test_time = 0;
 
 	Field2d() {
 		camera.zoom = 80.0f;
     	camera.offset = {(float) WINDOW.x / 2.0f, (float) WINDOW.y / 2.0f};
-    	test_spline.add_spline(hermite_factory(0, 2, {0,0}, {2,-2}, {-2,4}, {0,-1}));
-    	test_spline.add_spline(hermite_factory(2, 3, {-2,4}, {0,-1}, {0,0}, {2,-2}));
 	}
 
 	void render() {
@@ -63,65 +57,47 @@ public:
 	                }
 
 	                path_time += PATH_INDEX_DELTA; 
-	                if (path_time + PATH_INDEX_DELTA >= spline.get_duration()) {
+	                if (path_time + PATH_INDEX_DELTA >= spline.total_duration) {
 	                    break;
 	                }
-	            }
-
-	            path_time = 0;
-	            while (true) {
-	                Vec2<float> position = test_spline.get_position_at(path_time);
-	                Vec2<float> velocity = test_spline.get_velocity_at(path_time);
-	                DrawLineField(position, test_spline.get_position_at(path_time + PATH_INDEX_DELTA), 0.03f, {(unsigned char)(velocity.magnitude() / 10.0f), 50, 50, 200});
-
-	                path_time += PATH_INDEX_DELTA; 
-	                if (path_time + PATH_INDEX_DELTA >= test_spline.total_duration) {
-	                    break;
-	                }
-	            }
-
-	            for (unsigned int index = 0; index < spline.get_length(); index++) {
-	            	float time = spline.index_to_time(index);
-	            	Vec2<float> position = spline.get_position_at(time);
-	            	Vec2<float> velocity = spline.get_velocity_at(time);
-	            	DrawLineField(position, position.add(velocity * VELOCITY_DISPLAY_MULTIPLIER), 0.015f, {10, 200, 200, 240});
-	                DrawCircleField(position.add(velocity * VELOCITY_DISPLAY_MULTIPLIER), NODE_SIZE, {10, 200, 200, 240});
-	                DrawCircleField(position, NODE_SIZE, PATH_COLOR);
-	            }
-
-	            {
-	            	Vec2<float> position = test_spline.get_position_at(test_time);
-	                Vec2<float> velocity = test_spline.get_velocity_at(test_time);
-	                Vec2<float> acceleration = test_spline.get_acceleration_at(test_time);
-	            	DrawPolyField(position, 4, ROBOT_SIZE / 2.0f, (velocity.atan2() / PI) * 180 + 45, {200, 10, 200, 175});
-	            	DrawLineField(position, position.add(velocity.multiply(VELOCITY_DISPLAY_MULTIPLIER)), 0.025f, BLUE);
-	            	DrawLineField(position.add(velocity * VELOCITY_DISPLAY_MULTIPLIER), position.add(velocity  * VELOCITY_DISPLAY_MULTIPLIER).add(acceleration * ACCELERATION_DISPLAY_MULTIPLIER), 0.025, GREEN);
 	            }
 	            
-	            Vec2<float> position = spline.get_position_at(current_time);
-                Vec2<float> velocity = spline.get_velocity_at(current_time);
-                Vec2<float> acceleration = spline.get_acceleration_at(current_time);
+	            int index = -1;
+	            for (Point &point: builder.points) {
+	            	const float size = .2f;
+	                const float spacing = .01f;
+
+	                if (index >=0) {
+	                	DrawTextField(std::format("Travel time: {0:.2f} sec", builder.durations[index]).c_str(), point.position.add({-0.6f, -0.1f}), size, spacing, BLACK);
+	                	const float angle = point.velocity.atan2() + PI / 2.0f;
+	                	const Vec2<float> duration_position = point.position.add({builder.durations[index] * DURATION_DISPLAY_MULTIPLIER * std::cos(angle), builder.durations[index] * DURATION_DISPLAY_MULTIPLIER * std::sin(angle)});
+	                	DrawCircleField(duration_position, NODE_SIZE, PURPLE);
+	                	DrawLineField(point.position, duration_position, 0.015f, PURPLE);
+	                }
+	                index++;
+
+	                DrawTextField(("Pos: " + point.position.to_string_2f()).c_str(), point.position.add({0.3f, -0.1f}), size, spacing, BLACK);
+	                DrawTextField(std::format("Vel: {0:.2f} ft/s", point.velocity.magnitude()).c_str(), point.position.add({-0.2f, -0.1f}), size, spacing, BLACK);
+	                DrawTextField(point.velocity.to_string_2f().c_str(), point.position.add({-0.4f, -0.1f}), size, spacing, BLACK);
+
+	                Vec2<float> velocity_position = point.position.add(point.velocity * VELOCITY_DISPLAY_MULTIPLIER);
+	                DrawLineField(point.position, velocity_position, 0.015f, {10, 200, 200, 240});
+	                DrawCircleField(velocity_position, NODE_SIZE, {10, 200, 200, 240});
+	                DrawCircleField(point.position, NODE_SIZE, PATH_COLOR);
+	            }
+	          
+		        Vec2<float> position = spline.get_position_at(current_time);
+	            Vec2<float> velocity = spline.get_velocity_at(current_time);
+	            Vec2<float> acceleration = spline.get_acceleration_at(current_time);
 
 	            DrawPolyField(position, 4, ROBOT_SIZE / 2.0f, (velocity.atan2() / PI) * 180 + 45, {200, 10, 200, 175});
 	            DrawLineField(position, position.add(velocity.multiply(VELOCITY_DISPLAY_MULTIPLIER)), 0.025f, BLUE);
 	            DrawLineField(position.add(velocity * VELOCITY_DISPLAY_MULTIPLIER), position.add(velocity  * VELOCITY_DISPLAY_MULTIPLIER).add(acceleration * ACCELERATION_DISPLAY_MULTIPLIER), 0.025, GREEN);
 	            
 
-	            for (unsigned int index = 0; index < spline.get_length(); index++) {
-	            	float time = spline.index_to_time(index);
-	            	// printf("i: %i t: %f\n", index, time);
-	            	Vec2<float> position = spline.get_position_at(time);
-	            	Vec2<float> velocity = spline.get_velocity_at(time);
-	            	const float size = .2f;
-	                const float spacing = .01f;
-	                DrawTextField(("Pos: " + position.to_string_2f()).c_str(), position.add({0.3f, -0.1f}), size, spacing, BLACK);
-	                DrawTextField(std::format("Vel: {0:.2f} ft/s", velocity.magnitude()).c_str(), position.add({-0.2f, -0.1f}), size, spacing, BLACK);
-	                DrawTextField(velocity.to_string_2f().c_str(), position.add({-0.4f, -0.1f}), size, spacing, BLACK);
-	            }
-
 			EndMode2D();
 			DrawFPS(WINDOW.x * 0.9f, WINDOW.y * 0.05f);
-	        DrawText(std::format("Time {0:.2f} / {1:.2f}", current_time, spline.get_duration()).c_str(), 25, 20, 20, BLACK);
+	        DrawText(std::format("Time {0:.2f} / {1:.2f}", current_time, spline.total_duration).c_str(), 25, 20, 20, BLACK);
 	        DrawText(std::format("Position {0:.2f} / {1:.2f}", current_position, path_length).c_str(), 25, 40, 20, BLACK);
 	        DrawText(std::format("Velocity {0:.2f} / {1:.2f}", velocity.magnitude(), MAX_VELOCITY).c_str(), 25, 60, 20, BLACK);
 	        DrawText(std::format("Acceleration {0:.2f} / {1:.2f}", acceleration.magnitude(), MAX_ACCELERATION).c_str(), 25, 80, 20, BLACK);
@@ -132,18 +108,15 @@ public:
 	        if (does_over_acceleration) {
 	            DrawText("Warning: Path Exceeds Acceleration Constraint", 30, WINDOW.y - 40, 20, ORANGE);
 	        }
+	        
 		EndDrawing();
 
 		if (!paused) {
 	        current_time += GetFrameTime();
 	        current_position += velocity.magnitude() * GetFrameTime();
 
-	        if (current_time > spline.get_duration()) {
+	        if (current_time > spline.total_duration) {
 	            reset();
-	        }
-	        test_time += GetFrameTime();
-	        if (test_time > this->test_spline.total_duration) {
-	        	test_time = 0;
 	        }
     	}
 	}
@@ -195,24 +168,30 @@ public:
 
 	void drag_points() {
 	    Vec2<float> clicked_position = Vec2<float>(GetScreenToWorld2D(GetMousePosition(), this->camera)).screen_to_field();
-	    for (unsigned int index = 0; index < spline.get_length(); index++) {
-        	float time = spline.index_to_time(index);
-        	Vec2<float> position = spline.get_position_at(time);
-        	Vec2<float> velocity = spline.get_velocity_at(time);
-        	
-        	if (position.add(velocity * VELOCITY_DISPLAY_MULTIPLIER).get_distance_to(clicked_position - Vec2<float>(GetMouseDelta()).screen_to_field() / this->camera.zoom) <= GRAB_DISTANCE / this->camera.zoom) {
-	            velocity = (clicked_position - position) / (VELOCITY_DISPLAY_MULTIPLIER);
-	            spline.update_point(index, position, velocity / spline.get_time_scale());
+	    int index = -1;
+	    for (Point& point: builder.points) {
+	    	if (point.position.add(point.velocity * VELOCITY_DISPLAY_MULTIPLIER).get_distance_to(clicked_position - Vec2<float>(GetMouseDelta()).screen_to_field() / this->camera.zoom) <= GRAB_DISTANCE / this->camera.zoom) {
+	            point.velocity = (clicked_position - point.position) / (VELOCITY_DISPLAY_MULTIPLIER);
+	        	builder.build(spline);
 	            reset();
-	            return;
+	        } else if (point.position.get_distance_to(clicked_position - Vec2<float>(GetMouseDelta()).screen_to_field() / this->camera.zoom) <= GRAB_DISTANCE / this->camera.zoom) { 
+	        	point.position = clicked_position;
+	        	builder.build(spline);
+	            reset();
+	        } else if (index >= 0) {
+	        	const float angle = point.velocity.atan2() + PI / 2.0f;
+        		const Vec2<float> duration_position = point.position.add({builder.durations[index] * DURATION_DISPLAY_MULTIPLIER * std::cos(angle), builder.durations[index] * DURATION_DISPLAY_MULTIPLIER * std::sin(angle)});
+        		const float duration_distance = point.position.get_distance_to(clicked_position);
+        		
+        		if (duration_position.get_distance_to(clicked_position) <= GRAB_DISTANCE / this->camera.zoom) {
+        			builder.durations[index] = duration_distance / DURATION_DISPLAY_MULTIPLIER;
+        			builder.build(spline);
+	            	reset();
+        		}
 	        }
+        	index++;
 
-	        if (position.get_distance_to(clicked_position - Vec2<float>(GetMouseDelta()).screen_to_field() / this->camera.zoom) <= GRAB_DISTANCE / this->camera.zoom) { 
-	        	spline.update_point(index, clicked_position, velocity / spline.get_time_scale());
-	            reset();
-	            return;
-	        }
-        }
+	    }
 	}
 };
 
@@ -349,19 +328,16 @@ public:
 	                }
 
 	                path_time += PATH_INDEX_DELTA; 
-	                if (path_time + PATH_INDEX_DELTA >= spline.get_duration()) {
+	                if (path_time + PATH_INDEX_DELTA >= spline.total_duration) {
 	                    break;
 	                } 
 	            }
 
-	            for (unsigned int index = 0; index < spline.get_length(); index++) {
-	            	float time = spline.index_to_time(index);
-	            	Vec2<float> position = spline.get_position_at(time);
-	            	Vec2<float> velocity = spline.get_velocity_at(time);
-	            	DrawLine3D(position.to_3d(VELOCITY_NODE_HEIGHT).to_raylib(), position.add(velocity * VELOCITY_DISPLAY_MULTIPLIER).to_3d(VELOCITY_NODE_HEIGHT).to_raylib(), {10, 200, 200, 240});
-	            	DrawSphere(position.add(velocity * VELOCITY_DISPLAY_MULTIPLIER).to_3d(VELOCITY_NODE_HEIGHT).to_raylib(), NODE_SIZE, {10, 200, 200, 240});
-	                DrawLine3D(position.to_3d(PATH_HEIGHT).to_raylib(), position.to_3d(VELOCITY_NODE_HEIGHT).to_raylib(), PATH_COLOR);
-	                DrawSphere(position.to_3d(PATH_HEIGHT).to_raylib(), NODE_SIZE, PATH_COLOR);
+	            for (Point &point: builder.points) {
+	            	DrawLine3D(point.position.to_3d(VELOCITY_NODE_HEIGHT).to_raylib(), point.position.add(point.velocity * VELOCITY_DISPLAY_MULTIPLIER).to_3d(VELOCITY_NODE_HEIGHT).to_raylib(), {10, 200, 200, 240});
+	            	DrawSphere(point.position.add(point.velocity * VELOCITY_DISPLAY_MULTIPLIER).to_3d(VELOCITY_NODE_HEIGHT).to_raylib(), NODE_SIZE, {10, 200, 200, 240});
+	                DrawLine3D(point.position.to_3d(PATH_HEIGHT).to_raylib(), point.position.to_3d(VELOCITY_NODE_HEIGHT).to_raylib(), PATH_COLOR);
+	                DrawSphere(point.position.to_3d(PATH_HEIGHT).to_raylib(), NODE_SIZE, PATH_COLOR);
 	            }
 
 	            Vec2<float> position = spline.get_position_at(current_time);
@@ -375,7 +351,7 @@ public:
 
 			EndMode3D();
 			DrawFPS(WINDOW.x * 0.9f, WINDOW.y * 0.05f);
-	        DrawText(std::format("Time {0:.2f} / {1:.2f}", current_time, spline.get_duration()).c_str(), 25, 20, 20, WHITE);
+	        DrawText(std::format("Time {0:.2f} / {1:.2f}", current_time, spline.total_duration).c_str(), 25, 20, 20, WHITE);
 	        DrawText(std::format("Position {0:.2f} / {1:.2f}", current_position, path_length).c_str(), 25, 40, 20, WHITE);
 	        DrawText(std::format("Velocity {0:.2f} / {1:.2f}", velocity.magnitude(), MAX_VELOCITY).c_str(), 25, 60, 20, WHITE);
 	        DrawText(std::format("Acceleration {0:.2f} / {1:.2f}", acceleration.magnitude(), MAX_ACCELERATION).c_str(), 25, 80, 20, WHITE);
@@ -392,7 +368,7 @@ public:
 	        current_time += GetFrameTime();
 	        current_position += velocity.magnitude() * GetFrameTime();
 
-	        if (current_time > spline.get_duration()) {
+	        if (current_time > spline.total_duration) {
 	            reset();
 	        }
     	}

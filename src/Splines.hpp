@@ -1,6 +1,8 @@
 #pragma once
 
 
+#include <chrono>
+#include <iostream>
 #include <stdexcept>
 #include <vector>
 
@@ -50,10 +52,6 @@ public:
 	start_time(start_time),
 	end_time(end_time),
 	duration(end_time - start_time),
-	// t0_coefficient(t0_coefficient),
-	// t1_coefficient(t1_coefficient),
-	// t2_coefficient(t2_coefficient),
-	// t3_coefficient(t3_coefficient)
 	t0_coefficient(t0_coefficient),
 	t1_coefficient(t1_coefficient / duration),
 	t2_coefficient(t2_coefficient / (duration * duration)),
@@ -136,6 +134,23 @@ public:
 
 	Spline() {	}
 
+	void update_point(const unsigned int index, const Vec2<float> new_position, const Vec2<float> new_velocity) {
+		if (index > 0) {
+			CubicSpline temp_hermite = hermite_factory(this->splines[index - 1].start_time, this->splines[index - 1].end_time, this->splines[index - 1].get_position_at(0), this->splines[index - 1].get_velocity_at(0), new_position, new_velocity);
+			this->splines[index - 1].t0_coefficient = temp_hermite.t0_coefficient;
+			this->splines[index - 1].t1_coefficient = temp_hermite.t1_coefficient;
+			this->splines[index - 1].t2_coefficient = temp_hermite.t2_coefficient;
+			this->splines[index - 1].t3_coefficient = temp_hermite.t3_coefficient;
+		}
+		if (index < this->splines.size()) {
+			CubicSpline temp_hermite = hermite_factory(this->splines[index].start_time, this->splines[index].end_time, new_position, new_velocity, this->splines[index].get_position_at(1), this->splines[index].get_velocity_at(1));
+			this->splines[index].t0_coefficient = temp_hermite.t0_coefficient;
+			this->splines[index].t1_coefficient = temp_hermite.t1_coefficient;
+			this->splines[index].t2_coefficient = temp_hermite.t2_coefficient;
+			this->splines[index].t3_coefficient = temp_hermite.t3_coefficient;
+		}
+	}
+
 	void add_spline(const CubicSpline spline) {
 		this->splines.push_back(spline);
 		this->total_duration += spline.duration;
@@ -147,8 +162,7 @@ public:
 				return spline.get_position_at(time);
 			}
 		}
-		printf("%f\n", time);
-		throw std::runtime_error("Time > Max");
+		throw std::runtime_error("Time > Max\n");
 	}
 
 	Vec2<float> get_velocity_at(const float time) {
@@ -157,7 +171,7 @@ public:
 				return spline.get_velocity_at(time);
 			}
 		}
-		throw std::runtime_error("Time > Max");
+		throw std::runtime_error("Time > Max\n");
 	}
 
 
@@ -167,111 +181,38 @@ public:
 				return spline.get_acceleration_at(time);
 			}
 		}
-		throw std::runtime_error("Time > Max");
+		throw std::runtime_error("Time > Max\n");
 	}
 };
 
-class HermiteSpline {
-protected:
-	float duration = 5.0f;
-	std::vector<Point> points;
-	std::vector<Hermite> splines;
 
+class SplineBuilder {
 public:
-	void update_point(const unsigned int index, const Vec2<float> new_position, const Vec2<float> new_velocity) {
-		this->points[index].position = new_position;
-		this->points[index].velocity = new_velocity;
-		if (index > 0) {
-			Hermite temp_hermite = Hermite(this->splines[index - 1].get_position_at(0), this->splines[index - 1].get_velocity_at(0), new_position, new_velocity);
-			this->splines[index - 1].t0_coefficient = temp_hermite.t0_coefficient;
-			this->splines[index - 1].t1_coefficient = temp_hermite.t1_coefficient;
-			this->splines[index - 1].t2_coefficient = temp_hermite.t2_coefficient;
-			this->splines[index - 1].t3_coefficient = temp_hermite.t3_coefficient;
+	std::vector<Point> points;
+	std::vector<float> durations; 
+
+	SplineBuilder(const Vec2<float> initial_point, const Vec2<float> initial_control_point) {
+		this->points.push_back({initial_point, initial_control_point});
+	}
+
+	void add_point(const Vec2<float> point, const Vec2<float> control_point, const float travel_time) {
+		this->points.push_back({point, control_point});
+		this->durations.push_back(travel_time);
+	}
+
+	void build(Spline& _spline) {
+		_spline.total_duration = 0;
+		_spline.splines.clear();
+		for (unsigned int i = 0; i < this->points.size() - 1; i++) {
+			_spline.add_spline(hermite_factory(_spline.total_duration, _spline.total_duration + this->durations[i], this->points[i].position, this->points[i].velocity, this->points[i + 1].position, this->points[i + 1].velocity));
 		}
-		if (index < this->points.size()) {
-			Hermite temp_hermite = Hermite(new_position, new_velocity, this->splines[index].get_position_at(1), this->splines[index].get_velocity_at(1));
-			this->splines[index].t0_coefficient = temp_hermite.t0_coefficient;
-			this->splines[index].t1_coefficient = temp_hermite.t1_coefficient;
-			this->splines[index].t2_coefficient = temp_hermite.t2_coefficient;
-			this->splines[index].t3_coefficient = temp_hermite.t3_coefficient;
-		}
 	}
 
-	unsigned int get_length() const {
-		return this->points.size();
-	}
-
-	float get_duration() const {
-		return this->duration;
-	}
-
-	void set_duration(const float _duration) {
-		this->duration = _duration;
-	}
-
-	float get_time_scale() const {
-		return (this->points.size() - 1.0f) / this->duration;
-	}
-
-	void add_point(const Vec2<float> position, const Vec2<float> velocity) {
-		this->points.push_back({position, velocity});
-
-		if (this->points.size() <= 1) { // cannot add spline with just one point
-			return;
-		}
-
-		this->splines.push_back(Hermite(this->points[this->points.size() - 2].position, this->points[this->points.size() - 2].velocity, position, velocity));
-	}
-
-	float time_to_index(const float time) {
-        return (time / this->duration) * (this->points.size() - 1);
-    }
-    float index_to_time(const float index) {
-        return (index / (this->points.size() - 1)) * this->duration;
-    }
-
-	Vec2<float> get_position_at(const float time) {
-		const float index = this->time_to_index(time);
-		int spline_index;
-		if (index == this->points.size() - 1) {
-			spline_index = this->points.size() - 2;
-		} else {
-			spline_index = (int) std::floor(index);
-		}
-		return this->splines[spline_index].get_position_at(index - spline_index);
-	}
-
-	Vec2<float> get_velocity_at(const float time) {
-		const float index = this->time_to_index(time);
-		int spline_index;
-		if (index == this->points.size() - 1) {
-			spline_index = this->points.size() - 2;
-		} else {
-			spline_index = (int) std::floor(index);
-		}
-		return this->splines[spline_index].get_velocity_at(index - spline_index) * this->get_time_scale();
-	}
-
-	Vec2<float> get_acceleration_at(const float time) {
-		const float index = this->time_to_index(time);
-		int spline_index;
-		if (index == this->points.size() - 1) {
-			spline_index = this->points.size() - 2;
-		} else {
-			spline_index = (int) std::floor(index);
-		}
-		return this->splines[spline_index].get_acceleration_at(index - spline_index) * this->get_time_scale();
+	void print_parameters() {
+		std::cout << "SplineBuilder builder = SplineBuilder({" << this->points[0].position.x << ", "<< this->points[0].position.y << "}, {"<< this->points[0].velocity.x << ", "<< this->points[0].velocity.y << "});" << "\n";
+        for (unsigned int index = 1; index < this->points.size(); index++) {
+        	std::cout << "builder.add_point({" << this->points[index].position.x << ", "<< this->points[index].position.y << "}, {"<< this->points[index].velocity.x << ", "<< this->points[index].velocity.y << "}, " << this->durations[index - 1] << ");\n";
+        }
+        std::cout << "builder.build(spline);\n";
 	}
 };
-
-// class Cardinal: public CubicSpline {
-// public:
-// 	float scale = 0.5f;
-// 	Cardinal():
-// 	CubicSpline(,
-// 	            ,
-// 	            ,
-// 	            ) {
-
-// 	}
-// };
