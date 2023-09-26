@@ -24,7 +24,7 @@ constexpr Color PATH_COLOR = {10, 200, 100, 200};
 
 constexpr float PATH_INDEX_DELTA = 1e-3; // time step size when drawing path
 
-constexpr float GRAB_DISTANCE = 10.0f;
+constexpr float GRAB_DISTANCE = 15.0f;
 
 constexpr float BASE_CAMERA_MOVEMENT_SPEED = 100;
 constexpr float SPRINT_CAMERA_MOVEMENT_SPEED = BASE_CAMERA_MOVEMENT_SPEED * 2.5f;
@@ -51,5 +51,3 @@ constexpr float ROBOT_NODE_HEIGHT = ROBOT_HEIGHT + NODE_SIZE;
 
 constexpr float WALL_HEIGHT = mm_to_feet(300.0f);
 constexpr float GOAL_ELEVATION = 0.5f;
-
-static Font font;

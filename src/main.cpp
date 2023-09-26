@@ -1,9 +1,5 @@
 #include <cstdio>
-#include <fstream>
-#include <iostream>
 #include <raylib.h>
-#include <format>
-#include <filesystem>
 #include <stdexcept>
 
 
@@ -29,7 +25,17 @@ void setup_spline() {
     spline.add_point({0.179451, -3.01701}, {4.14979, 0.186927}, 1);
     spline.add_point({3.84697, -2.80391}, {2.75, 0.625}, 1);
     spline.build();
-    printf("%zu, %zu \n", spline.durations.size(), spline.splines.size());
+    test_position = spline.points[0];
+    test_velocity = spline.tangents[0];
+
+//    spline = Cardinal2f({4.15, 2.9625});
+//    spline.add_point({4.76837e-07, 3.025}, 1.00022, 0.5f);
+//    spline.add_point({-4.00399, 2.99458}, 0.89988, 0.5f);
+//    spline.add_point({-4.99096, 0}, 0.801776, 0.5f);
+//    spline.add_point({-3.97034, -2.98336}, 1, 0.5f);
+//    spline.add_point({0.179451, -3.01701}, 1, 0.5f);
+//    spline.add_point({3.84697, -2.80391}, 1, 0.5f);
+//    spline.build();
 }
 
 void input(Field2d &field2d, Field3d &field3d) {

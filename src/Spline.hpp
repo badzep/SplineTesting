@@ -27,6 +27,18 @@ constexpr float BEZIER_MATRIX[4][4] = {
 	{-1.0f, 3.0f, -3.0f, 1.0f} // t^3
 };
 
+static std::string get_data_type(const int size) {
+    if (size == 4) {
+        return "float";
+    }
+
+    if (size == 8) {
+        return "double";
+    }
+
+    return "idk man";
+}
+
 enum class SplineMethod {
 	HERMITE,
 	BEZIER,
@@ -115,38 +127,30 @@ public:
 		this->total_duration += spline.duration;
 	}
 
-    [[nodiscard]] Vec<DIMENSIONS, T> get_point_at(const float time) const {
+	[[nodiscard]] SplinePolynomial<DIMENSIONS, T> get_spline_at(const float time) const {
         for (SplinePolynomial<DIMENSIONS, T> spline: splines) {
             if (spline.start_time <= time and spline.end_time >= time) {
-                return spline.get_point_at(time);
+                return spline;
             }
         }
         throw std::runtime_error("Invalid Time\n");
     }
 
+    [[nodiscard]] Vec<DIMENSIONS, T> get_point_at(const float time) const {
+        return this->get_spline_at(time).get_point_at(time);
+    }
+
     [[nodiscard]] Vec<DIMENSIONS, T> get_tangent_at(const float time) const {
-	 	for (SplinePolynomial<DIMENSIONS, T> spline: splines) {
-	 		if (spline.start_time <= time and spline.end_time >= time) {
-	 			return spline.get_tangent_at(time);
-	 		}
-	 	}
-	 	throw std::runtime_error("Invalid Time\n");
+	 	return this->get_spline_at(time).get_tangent_at(time);
 	 }
 
     [[nodiscard]] Vec<DIMENSIONS, T> get_tangent_slope_at(const float time) const {
-	 	for (SplinePolynomial<DIMENSIONS, T> spline: splines) {
-	 		if (spline.start_time <= time and spline.end_time >= time) {
-	 			return spline.get_tangent_slope_at(time);
-	 		}
-	 	}
-	 	throw std::runtime_error("Invalid Time\n");
+	 	return this->get_spline_at(time).get_tangent_slope_at(time);
 	 }
 };
 
 template<const SplineMethod SPLINE, const unsigned char DIMENSIONS, typename T>
 class SplineChain;
-
-
 
 template<const unsigned char DIMENSIONS, typename T>
 class SplineChain<SplineMethod::HERMITE, DIMENSIONS, T>: public Chain<DIMENSIONS, T> {
@@ -181,15 +185,7 @@ public:
 	}
 
 	void print_parameters() {
-		std::string type_name;
-		if (sizeof(T) == 4) {
-			type_name = "float";
-		} else if (sizeof(T) == 8) {
-			type_name = "double";
-		} else {
-			type_name = "idk man";
-		}
-		std::cout << "SplineChain<SplineMethod::HERMITE, " << (int) DIMENSIONS << ", " << type_name << "> spline = SplineChain({" << this->points[0].x << ", "<< this->points[0].y << "}, {"<< this->tangents[0].x << ", "<< this->tangents[0].y << "});" << "\n";
+		std::cout << "SplineChain<SplineMethod::HERMITE, " << (int) DIMENSIONS << ", " << get_data_type(sizeof(T)) << "> spline = SplineChain({" << this->points[0].x << ", "<< this->points[0].y << "}, {"<< this->tangents[0].x << ", "<< this->tangents[0].y << "});" << "\n";
         for (unsigned int index = 1; index < this->points.size(); index++) {
         	std::cout << "spline.add_point({" << this->points[index].x << ", "<< this->points[index].y << "}, {"<< this->tangents[index].x << ", "<< this->tangents[index].y << "}, " << this->durations[index - 1] << ");\n";
         }
@@ -202,3 +198,51 @@ using Hermite3f = SplineChain<SplineMethod::HERMITE, 3, float>;
 
 using Hermite2d = SplineChain<SplineMethod::HERMITE, 2, double>;
 using Hermite3d = SplineChain<SplineMethod::HERMITE, 3, double>;
+
+
+template<const unsigned char DIMENSIONS, typename T>
+class SplineChain<SplineMethod::CARDINAL, DIMENSIONS, T>: public Chain<DIMENSIONS, T> {
+public:
+	std::vector<Vec<DIMENSIONS, T>> points;
+    std::vector<T> durations;
+    std::vector<T> scales;
+
+    SplineChain(const Vec<DIMENSIONS, T> point) {
+        this->points.push_back(point);
+    }
+
+	void add_point(const Vec<DIMENSIONS, T> point, const T travel_time, const T scale) {
+		this->points.push_back(point);
+		this->durations.push_back(travel_time);
+        this->scales.push_back(scale);
+	}
+
+	void build() {
+		this->total_duration = 0;
+		this->splines.clear();
+		for (unsigned int i = 1; i < this->points.size() - 1; i++) {
+			const Vec<DIMENSIONS, T> point0 = this->points[i - 1];
+			const Vec<DIMENSIONS, T> point1 = this->points[i];
+			const Vec<DIMENSIONS, T> point2 = this->points[i + 1];
+			const Vec<DIMENSIONS, T> point3 = this->points[i + 2];
+			const T scale = this->scales[i];
+            this->add_spline(SplinePolynomial<DIMENSIONS, T>(this->total_duration, this->total_duration + this->durations[i], point1, point0 * -scale + point2 * scale, point0 * 2 * scale + point1 * (scale-3) + point2 * (3 - 2 * scale) + point3 * -scale, point0 * -scale + point1 * (2 - scale) + point2 * (scale - 2) + point3 * scale));
+		}
+	}
+
+	void print_parameters() {
+		// TODO scale parameter
+		std::cout << "SplineChain<SplineMethod::CARDINAL, " << (int) DIMENSIONS << ", " << get_data_type(sizeof(T)) << "> spline = SplineChain({" << this->points[0].x << ", "<< this->points[0].y << "});" << "\n";
+        for (unsigned int index = 1; index < this->points.size(); index++) {
+        	std::cout << "spline.add_point({" << this->points[index].x << ", "<< this->points[index].y << "}, " << this->durations[index - 1] << ");\n";
+        }
+        std::cout << "spline.build(spline);\n";
+	}
+};
+
+
+using Cardinal2f = SplineChain<SplineMethod::CARDINAL, 2, float>;
+using Cardinal3f = SplineChain<SplineMethod::CARDINAL, 3, float>;
+
+using Cardinal2d = SplineChain<SplineMethod::CARDINAL, 2, double>;
+using Cardinal3d = SplineChain<SplineMethod::CARDINAL, 3, double>;
