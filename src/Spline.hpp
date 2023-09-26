@@ -113,7 +113,6 @@ using Spline3f = SplinePolynomial<3, float>;
 using Spline3d = SplinePolynomial<3, double>;
 
 
-
 template<const unsigned char DIMENSIONS, typename T>
 class Chain {
 public:
@@ -185,11 +184,11 @@ public:
 	}
 
 	void print_parameters() {
-		std::cout << "SplineChain<SplineMethod::HERMITE, " << (int) DIMENSIONS << ", " << get_data_type(sizeof(T)) << "> spline = SplineChain({" << this->points[0].x << ", "<< this->points[0].y << "}, {"<< this->tangents[0].x << ", "<< this->tangents[0].y << "});" << "\n";
+		std::cout << "SplineChain<SplineMethod::HERMITE, " << (int) DIMENSIONS << ", " << get_data_type(sizeof(T)) << "> spline = SplineChain<SplineMethod::HERMITE, " << (int) DIMENSIONS << ", " << get_data_type(sizeof(T)) << ">({" << this->points[0].x << ", "<< this->points[0].y << "}, {"<< this->tangents[0].x << ", "<< this->tangents[0].y << "});" << "\n";
         for (unsigned int index = 1; index < this->points.size(); index++) {
         	std::cout << "spline.add_point({" << this->points[index].x << ", "<< this->points[index].y << "}, {"<< this->tangents[index].x << ", "<< this->tangents[index].y << "}, " << this->durations[index - 1] << ");\n";
         }
-        std::cout << "spline.build(spline);\n";
+        std::cout << "spline.build();\n";
 	}
 };
 
@@ -232,11 +231,11 @@ public:
 
 	void print_parameters() {
 		// TODO scale parameter
-		std::cout << "SplineChain<SplineMethod::CARDINAL, " << (int) DIMENSIONS << ", " << get_data_type(sizeof(T)) << "> spline = SplineChain({" << this->points[0].x << ", "<< this->points[0].y << "});" << "\n";
+		std::cout << "SplineChain<SplineMethod::CARDINAL, " << (int) DIMENSIONS << ", " << get_data_type(sizeof(T)) << "> spline = SplineChain<SplineMethod::CARDINAL, " << (int) DIMENSIONS << ", " << get_data_type(sizeof(T)) << ">({" << this->points[0].x << ", "<< this->points[0].y << "});" << "\n";
         for (unsigned int index = 1; index < this->points.size(); index++) {
         	std::cout << "spline.add_point({" << this->points[index].x << ", "<< this->points[index].y << "}, " << this->durations[index - 1] << ");\n";
         }
-        std::cout << "spline.build(spline);\n";
+        std::cout << "spline.build();\n";
 	}
 };
 

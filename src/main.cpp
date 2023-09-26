@@ -17,14 +17,15 @@ enum class Mode {
 Mode mode = Mode::TWO_DIMENSIONAL;
 
 void setup_spline() {
-    spline = Hermite2f({4.15, 2.9625}, {-4.16667, 7.94729e-07});
-    spline.add_point({4.76837e-07, 3.025}, {-3.95, 0.0500002}, 1.00022);
-    spline.add_point({-4.00399, 2.99458}, {-4.43404, -0.678319}, 0.89988);
-    spline.add_point({-4.99096, 0}, {0, -4.14979}, 0.801776);
-    spline.add_point({-3.97034, -2.98336}, {4.11241, -0.560783}, 1);
-    spline.add_point({0.179451, -3.01701}, {4.14979, 0.186927}, 1);
-    spline.add_point({3.84697, -2.80391}, {2.75, 0.625}, 1);
+    spline = SplineChain<SplineMethod::HERMITE, 2, float>({4.025, 3}, {-4.1, 0.0999994});
+    spline.add_point({-0.0124998, 2.8}, {-3.95, 0.0500002}, 1.00022);
+    spline.add_point({-4.00399, 2.99458}, {-3.93404, -0.0283194}, 0.89988);
+    spline.add_point({-4.99096, 0}, {0, -4.14979}, 0.902563);
+    spline.add_point({-3.97034, -2.98336}, {4.08136, -0.116559}, 1);
+    spline.add_point({4.76837e-07, -2.8375}, {4.1, 0.0499992}, 1);
+    spline.add_point({4, -2.9875}, {3.85, -0.100002}, 1);
     spline.build();
+
     test_position = spline.points[0];
     test_velocity = spline.tangents[0];
 

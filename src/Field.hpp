@@ -101,12 +101,15 @@ public:
                 const Vec2f start_tangent = test_velocity * (end_time - current_time);
                 const Vec2f end_point = spline.get_point_at(end_time);
                 const Vec2f end_tangent = spline.get_tangent_at(end_time) * (end_time - current_time);
-                SplinePolynomial<2, float> test_spline = SplinePolynomial<2, float>(current_time, end_time, start_point, start_tangent, start_point * -3 + start_tangent * -2 + end_point * 3 + end_tangent * -1, start_point * 2 + start_tangent + end_point * -2 + end_tangent);
+                const SplinePolynomial<2, float> test_spline = SplinePolynomial<2, float>(current_time, end_time, start_point, start_tangent, start_point * -3 + start_tangent * -2 + end_point * 3 + end_tangent * -1, start_point * 2 + start_tangent + end_point * -2 + end_tangent);
                 Vec2f test_acceleration = test_spline.get_tangent_slope_at(current_time);
-                test_acceleration.range_in_place(MAX_ACCELERATION, -MAX_ACCELERATION);
-                test_position += test_velocity * GetFrameTime() + test_acceleration * GetFrameTime() * GetFrameTime();
-                test_velocity += test_acceleration * GetFrameTime();
-                test_velocity.range_in_place(MAX_VELOCITY, -MAX_VELOCITY);
+
+                if (!paused) {
+                	test_acceleration.range_in_place(MAX_ACCELERATION, -MAX_ACCELERATION);
+	                test_position += test_velocity * GetFrameTime() + test_acceleration * GetFrameTime() * GetFrameTime();
+	                test_velocity += test_acceleration * GetFrameTime();
+	                test_velocity.range_in_place(MAX_VELOCITY, -MAX_VELOCITY);
+                }
 
 //                DrawPolyField(test_position, 4, ROBOT_SIZE / 2.0f, (test_velocity.atan2() / PI) * 180 + 45, {200, 0, 0, 175});
 //                DrawLineField(test_position, test_position.add(test_velocity.multiply(VELOCITY_DISPLAY_MULTIPLIER)), 0.025f, BLUE);
@@ -249,6 +252,7 @@ public:
 	Model robot_model;
 	Model thick_pipe;
 	Model thin_pipe;
+	Model cone_thing;
 
 	explicit Field3d() {
 		camera.position = {0, 0, 3};
@@ -261,6 +265,7 @@ public:
 		this->robot_model = LoadModelFromMesh(GenMeshCube(ROBOT_SIZE, ROBOT_SIZE, ROBOT_HEIGHT));
 		this->thick_pipe = LoadModelFromMesh(GenMeshCylinder(mm_to_feet(30.0f), 1.0f, 10));
 		this->thin_pipe = LoadModelFromMesh(GenMeshCylinder(mm_to_feet(10.5f), 1.0f, 10));
+		this->cone_thing = LoadModelFromMesh(GenMeshCone(mm_to_feet(100.0), 0.25, 20));
 	}
 
 	~Field3d() {
@@ -311,6 +316,8 @@ public:
 
 		DrawModelEx(this->thin_pipe, {-2, -4, 0}, {1,0,0}, 90.0f, {1,0.5f,1}, RED);
 		DrawModelEx(this->thin_pipe, {2, -4, 0}, {1,0,0}, 90.0f, {1,0.5f,1}, RED);
+		DrawModelEx(this->cone_thing, {-2, -4, 0}, {1,0,0}, 90.0f, {1,1,1}, RED);
+		DrawModelEx(this->cone_thing, {2, -4, 0}, {1,0,0}, 90.0f, {1,1,1}, RED);
 		DrawModelEx(this->thin_pipe, {-2, -6, 0}, {1,0,0}, 90.0f, {1,WALL_HEIGHT,1}, BLACK);
 		DrawModelEx(this->thin_pipe, {2, -6, 0}, {1,0,0}, 90.0f, {1,WALL_HEIGHT,1}, BLACK);
 		DrawModelEx(this->thin_pipe, {-2, -4, 0.5f}, {0,0,1}, 180.0f, {1,2,1}, RED);
@@ -322,6 +329,8 @@ public:
 
 		DrawModelEx(this->thin_pipe, {-2, 4, 0}, {1,0,0}, 90.0f, {1,0.5f,1}, BLUE);
 		DrawModelEx(this->thin_pipe, {2, 4, 0}, {1,0,0}, 90.0f, {1,0.5f,1}, BLUE);
+		DrawModelEx(this->cone_thing, {-2, 4, 0}, {1,0,0}, 90.0f, {1,1,1}, BLUE);
+		DrawModelEx(this->cone_thing, {2, 4, 0}, {1,0,0}, 90.0f, {1,1,1}, BLUE);
 		DrawModelEx(this->thin_pipe, {-2, 6, 0}, {1,0,0}, 90.0f, {1,WALL_HEIGHT,1}, BLACK);
 		DrawModelEx(this->thin_pipe, {2, 6, 0}, {1,0,0}, 90.0f, {1,WALL_HEIGHT,1}, BLACK);
 		DrawModelEx(this->thin_pipe, {-2, 4, 0.5f}, {0,0,1}, 0.0f, {1,2,1}, BLUE);
@@ -405,10 +414,13 @@ public:
                 const Vec2f end_tangent = spline.get_tangent_at(end_time) * (end_time - current_time);
                 SplinePolynomial<2, float> test_spline = SplinePolynomial<2, float>(current_time, end_time, start_point, start_tangent, start_point * -3 + start_tangent * -2 + end_point * 3 + end_tangent * -1, start_point * 2 + start_tangent + end_point * -2 + end_tangent);
                 Vec2f test_acceleration = test_spline.get_tangent_slope_at(current_time);
-                test_acceleration.range_in_place(MAX_ACCELERATION, -MAX_ACCELERATION);
-                test_position += test_velocity * GetFrameTime() + test_acceleration * GetFrameTime() * GetFrameTime();
-                test_velocity += test_acceleration * GetFrameTime();
-                test_velocity.range_in_place(MAX_VELOCITY, -MAX_VELOCITY);
+                if (!paused) {
+                	test_acceleration.range_in_place(MAX_ACCELERATION, -MAX_ACCELERATION);
+	                test_position += test_velocity * GetFrameTime() + test_acceleration * GetFrameTime() * GetFrameTime();
+	                test_velocity += test_acceleration * GetFrameTime();
+	                test_velocity.range_in_place(MAX_VELOCITY, -MAX_VELOCITY);
+                }
+                
                 DrawModelEx(this->robot_model, test_position.to_3d(ROBOT_HEIGHT / 2.0f).to_raylib(),{0,0,1}, (test_velocity.atan2() / PI) * 180, {1,1,1}, {200, 0, 0, 175});
                 DrawLine3D(test_position.to_3d(ROBOT_NODE_HEIGHT).to_raylib(), test_position.add(test_velocity.multiply(VELOCITY_DISPLAY_MULTIPLIER)).to_3d(ROBOT_NODE_HEIGHT).to_raylib(), BLUE);
                 DrawLine3D(test_position.add(test_velocity * VELOCITY_DISPLAY_MULTIPLIER).to_3d(ROBOT_NODE_HEIGHT).to_raylib(), test_position.add(test_velocity * VELOCITY_DISPLAY_MULTIPLIER).add(test_acceleration * ACCELERATION_DISPLAY_MULTIPLIER).to_3d(ROBOT_NODE_HEIGHT).to_raylib(), GREEN);
