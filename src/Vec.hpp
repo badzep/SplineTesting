@@ -2,36 +2,50 @@
 
 
 #include <cmath>
-#include <raylib.h>
 #include <string>
 #include <format>
+#include <raylib.h>
 
 
-#include "Constants.hpp"
+template<const unsigned char DIMENSIONS, typename T>
+class Vec {
+public:
+    T values[DIMENSIONS];
+};
 
+template<const unsigned char DIMENSIONS>
+using Vecnf = Vec<DIMENSIONS, float>;
+template<const unsigned char DIMENSIONS>
+using Vecnd = Vec<DIMENSIONS, double>;
+
+using Vec2f = Vec<2, float>;
+using Vec3f = Vec<3, float>;
+
+using Vec2d = Vec<2, double>;
+using Vec3d = Vec<3, double>;
 
 template<typename T> 
-class Vec3 {
+class Vec<3, T> {
 public:
     T x;
     T y;
     T z;
 
-    Vec3() {    }
+    Vec() {    }
 
-    Vec3(const T x, const T y, const T z): x(x), y(y), z(z) {    }
+    Vec(const T x, const T y, const T z): x(x), y(y), z(z) {    }
 
-    explicit Vec3(const Vector3 vector): x(vector.x), y(vector.y), z(vector.z) {    }
+    explicit Vec(const Vector3 vector): x(vector.x), y(vector.y), z(vector.z) {    }
 
-    ~Vec3() = default;
+    ~Vec() = default;
 
-    [[nodiscard]] Vec3<T> operator+(Vec3<T> const other_vector) const {
+    [[nodiscard]] Vec<3, T> operator+(Vec<3, T> const other_vector) const {
         return {this->x + other_vector.x, this->y + other_vector.y, this->z + other_vector.z};
     }
-    [[nodiscard]] Vec3<T> operator+(const T other) const {
+    [[nodiscard]] Vec<3, T> operator+(const T other) const {
         return {this->x + other, this->y + other, this->z + other};
     }
-    void operator+=(Vec3<T> const other_vector) {
+    void operator+=(Vec<3, T> const other_vector) {
         this->x += other_vector.x;
         this->y += other_vector.y;
         this->z += other_vector.z;
@@ -41,13 +55,13 @@ public:
         this->y += other;
         this->z += other;
     }
-    [[nodiscard]] Vec3<T> add(const Vec3<T> other_vector) const {
+    [[nodiscard]] Vec<3, T> add(const Vec<3, T> other_vector) const {
         return {this->x + other_vector.x, this->y + other_vector.y, this->z + other_vector.z};
     }
-    [[nodiscard]] Vec3<T> add(const T other) const {
+    [[nodiscard]] Vec<3, T> add(const T other) const {
         return {this->x + other, this->y + other, this->z + other};
     }
-    void add_in_place(const Vec3<T> other_vector) {
+    void add_in_place(const Vec<3, T> other_vector) {
         this->x += other_vector.x;
         this->y += other_vector.y;
         this->z += other_vector.z;
@@ -58,13 +72,13 @@ public:
         this->z += other;
     }
 
-    [[nodiscard]] Vec3<T> operator-(Vec3<T> const other_vector) const {
+    [[nodiscard]] Vec<3, T> operator-(Vec<3, T> const other_vector) const {
         return {this->x - other_vector.x, this->y - other_vector.y, this->z - other_vector.z};
     }
-    [[nodiscard]] Vec3<T> operator-(const T other) const {
+    [[nodiscard]] Vec<3, T> operator-(const T other) const {
         return {this->x - other, this->y - other, this->z - other};
     }
-    void operator-=(Vec3<T> const other_vector) {
+    void operator-=(Vec<3, T> const other_vector) {
         this->x -= other_vector.x;
         this->y -= other_vector.y;
         this->z -= other_vector.z;
@@ -74,13 +88,13 @@ public:
         this->y -= other;
         this->z -= other;
     }
-    [[nodiscard]] Vec3<T> subtract(const Vec3<T> other_vector) const {
+    [[nodiscard]] Vec<3, T> subtract(const Vec<3, T> other_vector) const {
         return {this->x - other_vector.x, this->y - other_vector.y, this->z - other_vector.z};
     }
-    [[nodiscard]] Vec3<T> subtract(const T other) const {
+    [[nodiscard]] Vec<3, T> subtract(const T other) const {
         return {this->x - other, this->y - other, this->z - other};
     }
-    void subtract_in_place(const Vec3<T> other_vector) {
+    void subtract_in_place(const Vec<3, T> other_vector) {
         this->x -= other_vector.x;
         this->y -= other_vector.y;
         this->z -= other_vector.z;
@@ -91,13 +105,13 @@ public:
         this->z -= other;
     }
 
-    [[nodiscard]] Vec3<T> operator*(Vec3<T> const other_vector) const {
+    [[nodiscard]] Vec<3, T> operator*(Vec<3, T> const other_vector) const {
         return {this->x * other_vector.x, this->y * other_vector.y, this->z * other_vector.z};
     }
-    [[nodiscard]] Vec3<T> operator*(const T other) const {
+    [[nodiscard]] Vec<3, T> operator*(const T other) const {
         return {this->x * other, this->y * other, this->z * other};
     }
-    void operator*=(Vec3<T> const other_vector) {
+    void operator*=(Vec<3, T> const other_vector) {
         this->x *= other_vector.x;
         this->y *= other_vector.y;
         this->z *= other_vector.z;
@@ -107,13 +121,13 @@ public:
         this->y *= other;
         this->z *= other;
     }
-    [[nodiscard]] Vec3<T> multiply(const Vec3<T> other_vector) const {
+    [[nodiscard]] Vec<3, T> multiply(const Vec<3, T> other_vector) const {
         return {this->x * other_vector.x, this->y * other_vector.y, this->z * other_vector.z};
     }
-    [[nodiscard]] Vec3<T> multiply(const T other) const {
+    [[nodiscard]] Vec<3, T> multiply(const T other) const {
         return {this->x * other, this->y * other, this->z * other};
     }
-    void multiply_in_place(const Vec3<T> other_vector) {
+    void multiply_in_place(const Vec<3, T> other_vector) {
         this->x *= other_vector.x;
         this->y *= other_vector.y;
         this->z *= other_vector.z;
@@ -124,13 +138,13 @@ public:
         this->z *= other;
     }
 
-    [[nodiscard]] Vec3<T> operator/(Vec3<T> const other_vector) const {
+    [[nodiscard]] Vec<3, T> operator/(Vec<3, T> const other_vector) const {
         return {this->x / other_vector.x, this->y / other_vector.y, this->z / other_vector.z};
     }
-    [[nodiscard]] Vec3<T> operator/(const T other) const {
+    [[nodiscard]] Vec<3, T> operator/(const T other) const {
         return {this->x / other, this->y / other, this->z / other};
     }
-    void operator/=(Vec3<T> const other_vector) {
+    void operator/=(Vec<3, T> const other_vector) {
         this->x /= other_vector.x;
         this->y /= other_vector.y;
         this->z /= other_vector.z;
@@ -140,13 +154,13 @@ public:
         this->y /= other;
         this->z /= other;
     }
-    [[nodiscard]] Vec3<T> divide(const Vec3<T> other_vector) const {
+    [[nodiscard]] Vec<3, T> divide(const Vec<3, T> other_vector) const {
         return {this->x / other_vector.x, this->y / other_vector.y, this->z / other_vector.z};
     }
-    [[nodiscard]] Vec3<T> divide(const T other) const {
+    [[nodiscard]] Vec<3, T> divide(const T other) const {
         return {this->x / other, this->y / other, this->z / other};
     }
-    void divide_in_place(const Vec3<T> other_vector) {
+    void divide_in_place(const Vec<3, T> other_vector) {
         this->x /= other_vector.x;
         this->y /= other_vector.y;
         this->z /= other_vector.z;
@@ -157,13 +171,13 @@ public:
         this->z /= other;
     }
 
-    [[nodiscard]] Vec3<T> power(const Vec3<T> other_vector) const {
+    [[nodiscard]] Vec<3, T> power(const Vec<3, T> other_vector) const {
         return {std::pow(this->x, other_vector.x), std::pow(this->y, other_vector.y), std::pow(this->z, other_vector.z)};
     }
-    [[nodiscard]] Vec3<T> power(const T other) const {
+    [[nodiscard]] Vec<3, T> power(const T other) const {
         return {std::pow(this->x, other), std::pow(this->y, other), std::pow(this->z, other)};
     }
-    void power_in_place(const Vec3<T> other_vector) {
+    void power_in_place(const Vec<3, T> other_vector) {
         this->x = std::pow(this->x, other_vector.x);
         this->y = std::pow(this->y, other_vector.y);
         this->z = std::pow(this->z, other_vector.z);
@@ -174,7 +188,7 @@ public:
         this->z = std::pow(this->z, other);
     }
 
-    [[nodiscard]] Vec3<T> abs() const {
+    [[nodiscard]] Vec<3, T> abs() const {
         return {std::abs(this->x), std::abs(this->y), std::abs(this->z)};
     }
     void abs_in_place() {
@@ -183,7 +197,7 @@ public:
         this->z = std::abs(z);
     }
 
-    [[nodiscard]] Vec3<T> sqrt() const {
+    [[nodiscard]] Vec<3, T> sqrt() const {
         return {std::sqrt(this->x), std::sqrt(this->y), std::sqrt(this->z)};
     }
     void sqrt_in_place() {
@@ -192,7 +206,7 @@ public:
         this->z = std::sqrt(z);
     }
 
-    [[nodiscard]] Vec3<T> round() const {
+    [[nodiscard]] Vec<3, T> round() const {
         return {std::round(this->x), std::round(this->y)};
     }
     void round_in_place() {
@@ -200,7 +214,7 @@ public:
         this->y = std::round(y);
     }
 
-    T get_distance_to(Vec3<T> other_vector) const {
+    T get_distance_to(Vec<3, T> other_vector) const {
         return std::sqrt(std::pow(this->x - other_vector.x, 2) + std::pow(this->y - other_vector.y, 2)  + std::pow(this->z - other_vector.z, 2));
     }
 
@@ -208,7 +222,7 @@ public:
         return std::sqrt(this->x * this->x + this->y * this->y, this->z * this->z);
     }
 
-    [[nodiscard]] Vec3<T> normalize() const {
+    [[nodiscard]] Vec<3, T> normalize() const {
         return this->divide(this->magnitude());
     }
 
@@ -228,27 +242,26 @@ public:
     }
 };
 
-
-template<typename T> 
-class Vec2 {
-public:
+template<class T>
+class Vec<2, T> {
+    public:
     T x;
     T y;
 
-    Vec2() {    }
-    Vec2(const T x, const T y): x(x), y(y) {    }
+    Vec() {    }
+    Vec(const T x, const T y): x(x), y(y) {    }
 
-    explicit Vec2(const Vector2 vector): x(vector.x), y(vector.y) {    }
+    explicit Vec(const Vector2 vector): x(vector.x), y(vector.y) {    }
 
-    ~Vec2() = default;
+    ~Vec() = default;
 
-    [[nodiscard]] Vec2<T> operator+(Vec2<T> const other_vector) const {
+    [[nodiscard]] Vec<2, T> operator+(Vec<2, T> const other_vector) const {
         return {this->x + other_vector.x, this->y + other_vector.y};
     }
-    [[nodiscard]] Vec2<T> operator+(const T other) const {
+    [[nodiscard]] Vec<2, T> operator+(const T other) const {
         return {this->x + other, this->y + other};
     }
-    void operator+=(Vec2<T> const other_vector) {
+    void operator+=(Vec<2, T> const other_vector) {
         this->x += other_vector.x;
         this->y += other_vector.y;
     }
@@ -256,13 +269,13 @@ public:
         this->x += other;
         this->y += other;
     }
-    [[nodiscard]] Vec2<T> add(const Vec2<T> other_vector) const {
+    [[nodiscard]] Vec<2, T> add(const Vec<2, T> other_vector) const {
         return {this->x + other_vector.x, this->y + other_vector.y};
     }
-    [[nodiscard]] Vec2<T> add(const T other) const {
+    [[nodiscard]] Vec<2, T> add(const T other) const {
         return {this->x + other, this->y + other};
     }
-    void add_in_place(const Vec2<T> other_vector) {
+    void add_in_place(const Vec<2, T> other_vector) {
         this->x += other_vector.x;
         this->y += other_vector.y;
     }
@@ -271,13 +284,13 @@ public:
         this->y += other;
     }
 
-    [[nodiscard]] Vec2<T> operator-(Vec2<T> const other_vector) const {
+    [[nodiscard]] Vec<2, T> operator-(Vec<2, T> const other_vector) const {
         return {this->x - other_vector.x, this->y - other_vector.y};
     }
-    [[nodiscard]] Vec2<T> operator-(const T other) const {
+    [[nodiscard]] Vec<2, T> operator-(const T other) const {
         return {this->x - other, this->y - other};
     }
-    void operator-=(Vec2<T> const other_vector) {
+    void operator-=(Vec<2, T> const other_vector) {
         this->x -= other_vector.x;
         this->y -= other_vector.y;
     }
@@ -285,13 +298,13 @@ public:
         this->x -= other;
         this->y -= other;
     }
-    [[nodiscard]] Vec2<T> subtract(const Vec2<T> other_vector) const {
+    [[nodiscard]] Vec<2, T> subtract(const Vec<2, T> other_vector) const {
         return {this->x - other_vector.x, this->y - other_vector.y};
     }
-    [[nodiscard]] Vec2<T> subtract(const T other) const {
+    [[nodiscard]] Vec<2, T> subtract(const T other) const {
         return {this->x - other, this->y - other};
     }
-    void subtract_in_place(const Vec2<T> other_vector) {
+    void subtract_in_place(const Vec<2, T> other_vector) {
         this->x -= other_vector.x;
         this->y -= other_vector.y;
     }
@@ -300,13 +313,13 @@ public:
         this->y -= other;
     }
 
-    [[nodiscard]] Vec2<T> operator*(Vec2<T> const other_vector) const {
+    [[nodiscard]] Vec<2, T> operator*(Vec<2, T> const other_vector) const {
         return {this->x * other_vector.x, this->y * other_vector.y};
     }
-    [[nodiscard]] Vec2<T> operator*(const T other) const {
+    [[nodiscard]] Vec<2, T> operator*(const T other) const {
         return {this->x * other, this->y * other};
     }
-    void operator*=(Vec2<T> const other_vector) {
+    void operator*=(Vec<2, T> const other_vector) {
         this->x *= other_vector.x;
         this->y *= other_vector.y;
     }
@@ -314,13 +327,13 @@ public:
         this->x *= other;
         this->y *= other;
     }
-    [[nodiscard]] Vec2<T> multiply(const Vec2<T> other_vector) const {
+    [[nodiscard]] Vec<2, T> multiply(const Vec<2, T> other_vector) const {
         return {this->x * other_vector.x, this->y * other_vector.y};
     }
-    [[nodiscard]] Vec2<T> multiply(const T other) const {
+    [[nodiscard]] Vec<2, T> multiply(const T other) const {
         return {this->x * other, this->y * other};
     }
-    void multiply_in_place(const Vec2<T> other_vector) {
+    void multiply_in_place(const Vec<2, T> other_vector) {
         this->x *= other_vector.x;
         this->y *= other_vector.y;
     }
@@ -329,13 +342,13 @@ public:
         this->y *= other;
     }
 
-    [[nodiscard]] Vec2<T> operator/(Vec2<T> const other_vector) const {
+    [[nodiscard]] Vec<2, T> operator/(Vec<2, T> const other_vector) const {
         return {this->x / other_vector.x, this->y / other_vector.y};
     }
-    [[nodiscard]] Vec2<T> operator/(const T other) const {
+    [[nodiscard]] Vec<2, T> operator/(const T other) const {
         return {this->x / other, this->y / other};
     }
-    void operator/=(Vec2<T> const other_vector) {
+    void operator/=(Vec<2, T> const other_vector) {
         this->x /= other_vector.x;
         this->y /= other_vector.y;
     }
@@ -343,13 +356,13 @@ public:
         this->x /= other;
         this->y /= other;
     }
-    [[nodiscard]] Vec2<T> divide(const Vec2<T> other_vector) const {
+    [[nodiscard]] Vec<2, T> divide(const Vec<2, T> other_vector) const {
         return {this->x / other_vector.x, this->y / other_vector.y};
     }
-    [[nodiscard]] Vec2<T> divide(const T other) const {
+    [[nodiscard]] Vec<2, T> divide(const T other) const {
         return {this->x / other, this->y / other};
     }
-    void divide_in_place(const Vec2<T> other_vector) {
+    void divide_in_place(const Vec<2, T> other_vector) {
         this->x /= other_vector.x;
         this->y /= other_vector.y;
     }
@@ -358,13 +371,13 @@ public:
         this->y /= other;
     }
 
-    [[nodiscard]] Vec2<T> power(const Vec2<T> other_vector) const {
+    [[nodiscard]] Vec<2, T> power(const Vec<2, T> other_vector) const {
         return {std::pow(this->x, other_vector.x), std::pow(this->y, other_vector.y)};
     }
-    [[nodiscard]] Vec2<T> power(const T other) const {
+    [[nodiscard]] Vec<2, T> power(const T other) const {
         return {std::pow(this->x, other), std::pow(this->y, other)};
     }
-    void power_in_place(const Vec2<T> other_vector) {
+    void power_in_place(const Vec<2, T> other_vector) {
         this->x = std::pow(this->x, other_vector.x);
         this->y = std::pow(this->y, other_vector.y);
     }
@@ -373,7 +386,7 @@ public:
         this->y = std::pow(this->y, other);
     }
 
-    [[nodiscard]] Vec2<T> abs() const {
+    [[nodiscard]] Vec<2, T> abs() const {
         return {std::abs(this->x), std::abs(this->y)};
     }
     void abs_in_place() {
@@ -381,7 +394,7 @@ public:
         this->y = std::abs(y);
     }
 
-    [[nodiscard]] Vec2<T> sqrt() const {
+    [[nodiscard]] Vec<2, T> sqrt() const {
         return {std::sqrt(this->x), std::sqrt(this->y)};
     }
     void sqrt_in_place() {
@@ -389,7 +402,7 @@ public:
         this->y = std::sqrt(y);
     }
 
-    [[nodiscard]] Vec2<T> round() const {
+    [[nodiscard]] Vec<2, T> round() const {
         return {std::round(this->x), std::round(this->y)};
     }
     void round_in_place() {
@@ -397,7 +410,7 @@ public:
         this->y = std::round(y);
     }
 
-    T get_distance_to(Vec2<T> other_vector) const {
+    T get_distance_to(Vec<2, T> other_vector) const {
         return std::sqrt(std::pow(this->x - other_vector.x, 2) + std::pow(this->y - other_vector.y, 2));
     }
 
@@ -409,7 +422,7 @@ public:
         return std::atan2(this->y, this->x);
     }
 
-    [[nodiscard]] Vec2<T> normalize() const {
+    [[nodiscard]] Vec<2, T> normalize() const {
         return this->divide(this->magnitude());
     }
 
@@ -424,6 +437,10 @@ public:
         return std::format("<{0:.2f}, {1:.2f}>", this->x, this->y);
     }
     
+    [[nodiscard]] Vec<2, T> rotate(const float angle) {
+        const float magnitude = this->magnitude();
+        return {magnitude * std::cos(angle), magnitude * std::sin(angle)};
+    }
     [[nodiscard]] Vector2 to_raylib() const {
         return {this->x, this->y};
     }
@@ -431,34 +448,18 @@ public:
     /**
      * Also works in reverse
      */
-    [[nodiscard]] Vec2<T> field_to_screen() const {
+    [[nodiscard]] Vec<2, T> field_to_screen() const {
         return {-this->y, -this->x};
     }
 
     /**
      * Only exists for the sake of clarity
      */
-    [[nodiscard]] Vec2<T> screen_to_field() const {
+    [[nodiscard]] Vec<2, T> screen_to_field() const {
         return {-this->y, -this->x};
     }
 
-    [[nodiscard]] Vec3<T> to_3d(const T z) const {
+    [[nodiscard]] Vec<3, T> to_3d(const T z) const {
         return {this->x, this->y, z};
     }
 };
-
-inline void DrawLineField(const Vec2<float> start, const Vec2<float> end, const float thickness, const Color color) {
-    DrawLineEx(start.field_to_screen().to_raylib(), end.field_to_screen().to_raylib(), thickness, color);
-}
-
-inline void DrawCircleField(const Vec2<float> position, const float radius, const Color color) {
-    DrawCircleV(position.field_to_screen().to_raylib(), radius, color);
-}
-
-inline void DrawPolyField(const Vec2<float> position, const unsigned int sides, const float radius, const float rotation, const Color color) {
-    DrawPoly(position.field_to_screen().to_raylib(), sides, radius, -rotation, color);
-}
-
-inline void DrawTextField(const char* text, const Vec2<float> position, const float font_size, const float spacing, const Color color) {
-    DrawTextEx(font, text, position.field_to_screen().to_raylib(), font_size, spacing, color);
-}
