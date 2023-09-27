@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <complex>
+#include <cstdio>
 #include <iostream>
 #include <raylib.h>
 #include <thread>
@@ -194,19 +195,38 @@ public:
 	    DrawLineField({4,-0}, {-4,0}, TWO_INCHES, BLACK);
 	    DrawLineField({4,2}, {4,-2}, TWO_INCHES, BLACK);
 	    DrawLineField({-4,2}, {-4,-2}, TWO_INCHES, BLACK);
+	    
 
 	    // goal net things
 	    DrawCircleField({2,4}, mm_to_feet(100.0), BLUE);
 	    DrawCircleField({-2,4}, mm_to_feet(100.0), BLUE);
-	    DrawLineField({2,4}, {-2,4}, ONE_INCH, BLUE);
-	    DrawLineField({2,4}, {2,6}, ONE_INCH, BLUE);
-	    DrawLineField({-2,4}, {-2,6}, ONE_INCH, BLUE);
+	    for (unsigned char net_x_index = 0; net_x_index < NET_SIZE.x; net_x_index++) {
+			const float x_position = -2 + (NET_SPACING_X * (net_x_index + 1));
+			DrawLineField({x_position, 4}, {x_position, 6}, 0.01f, BLUE);
+		}
+		for (unsigned char net_y_index = 0; net_y_index < NET_SIZE.y; net_y_index++) {
+			const float y_position = 6 - NET_SPACING_X * (net_y_index + 1);
+			DrawLineField({-2, y_position}, {2, y_position}, 0.01f, BLUE);
+		}
+	    DrawLineField({2,4}, {-2,4}, ONE_INCH, BLACK);
+	    DrawLineField({2,6}, {-2,6}, ONE_INCH, BLACK);
+	    DrawLineField({2,4}, {2,6}, ONE_INCH, BLACK);
+	    DrawLineField({-2,4}, {-2,6}, ONE_INCH, BLACK);
 
 	    DrawCircleField({2,-4}, mm_to_feet(100.0), RED);
 	    DrawCircleField({-2,-4}, mm_to_feet(100.0), RED);
-	    DrawLineField({2,-4}, {-2,-4}, ONE_INCH, RED);
-	    DrawLineField({2,-4}, {2,-6}, ONE_INCH, RED);
-	    DrawLineField({-2,-4}, {-2,-6}, ONE_INCH, RED);
+	    for (unsigned char net_x_index = 0; net_x_index < NET_SIZE.x; net_x_index++) {
+			const float x_position = 2 - (NET_SPACING_X * (net_x_index + 1));
+			DrawLineField({x_position, -4}, {x_position, -6}, 0.01f, RED);
+		}
+		for (unsigned char net_y_index = 0; net_y_index < NET_SIZE.y; net_y_index++) {
+			const float y_position = -6 + NET_SPACING_X * (net_y_index + 1);
+			DrawLineField({-2, y_position}, {2, y_position}, 0.01f, RED);
+		}
+	    DrawLineField({2,-4}, {-2,-4}, ONE_INCH, BLACK);
+	    DrawLineField({2,-6}, {-2,-6}, ONE_INCH, BLACK);
+	    DrawLineField({2,-4}, {2,-6}, ONE_INCH, BLACK);
+	    DrawLineField({-2,-4}, {-2,-6}, ONE_INCH, BLACK);
 	}
 
 	void drag_points() const {
@@ -255,11 +275,11 @@ public:
 	Model cone_thing;
 
 	explicit Field3d() {
-		camera.position = {0, 0, 3};
-		camera.target = {1, 0, 1};
+		camera.projection = CAMERA_PERSPECTIVE;
 		camera.fovy = 60;
 		camera.up = {0.0f, 0.0f, 1.0f};
-		camera.projection = CAMERA_PERSPECTIVE;
+		camera.position = {0, 0, 8};
+		camera.target = {0.1f, 0, 1};
 
     	this->field_model = LoadModelFromMesh(GenMeshCube(GRID_SIZE * 2.0f, GRID_SIZE * 2.0f, 1.0f));
 		this->robot_model = LoadModelFromMesh(GenMeshCube(ROBOT_SIZE, ROBOT_SIZE, ROBOT_HEIGHT));
@@ -324,8 +344,17 @@ public:
 		DrawModelEx(this->thin_pipe, {2, -4, 0.5f}, {0,0,1}, 180.0f, {1,2,1}, RED);
 		DrawModelEx(this->thin_pipe, {2, -4, 0.5f}, {0,0,1}, 90.0f, {1,4,1}, BLACK);
 		DrawModelEx(this->thin_pipe, {2, -6, WALL_HEIGHT}, {0,0,1}, 90.0f, {1,4,1}, BLACK);
-		DrawModelEx(this->thin_pipe, {-2, -6, WALL_HEIGHT}, {1,0,0}, -std::atan((WALL_HEIGHT - 0.5f) / 2.0f) * 180.0f / PI, {1,std::hypot(2.0f, WALL_HEIGHT - 0.5f),1}, BLACK);
-		DrawModelEx(this->thin_pipe, {2, -6, WALL_HEIGHT}, {1,0,0}, -std::atan((WALL_HEIGHT - 0.5f) / 2.0f) * 180.0f / PI, {1,std::hypot(2.0f, WALL_HEIGHT - 0.5f),1}, BLACK);
+		DrawModelEx(this->thin_pipe, {-2, -6, WALL_HEIGHT}, {1,0,0}, -NET_ANGLE * 180.0f / PI, {1,std::hypot(2.0f, WALL_HEIGHT - 0.5f),1}, BLACK);
+		DrawModelEx(this->thin_pipe, {2, -6, WALL_HEIGHT}, {1,0,0}, -NET_ANGLE * 180.0f / PI, {1,std::hypot(2.0f, WALL_HEIGHT - 0.5f),1}, BLACK);
+		for (unsigned char net_x_index = 0; net_x_index < NET_SIZE.x; net_x_index++) {
+			const float x_position = -2 + (NET_SPACING_X * (net_x_index + 1));
+			DrawLine3D({x_position, -4, 0.5f}, {x_position, -6, WALL_HEIGHT}, RED);
+		}
+		for (unsigned char net_y_index = 0; net_y_index < NET_SIZE.y; net_y_index++) {
+			const float y_position = -6 + (std::cos(-NET_ANGLE) * NET_SPACING_Y) * (net_y_index + 1);
+			const float z_position = WALL_HEIGHT + (std::sin(-NET_ANGLE) * NET_SPACING_Y) * (net_y_index + 1);
+			DrawLine3D({-2, y_position, z_position}, {2, y_position, z_position}, RED);
+		}
 
 		DrawModelEx(this->thin_pipe, {-2, 4, 0}, {1,0,0}, 90.0f, {1,0.5f,1}, BLUE);
 		DrawModelEx(this->thin_pipe, {2, 4, 0}, {1,0,0}, 90.0f, {1,0.5f,1}, BLUE);
@@ -337,8 +366,17 @@ public:
 		DrawModelEx(this->thin_pipe, {2, 4, 0.5f}, {0,0,1}, 0.0f, {1,2,1}, BLUE);
 		DrawModelEx(this->thin_pipe, {2, 4, 0.5f}, {0,0,1}, 90.0f, {1,4,1}, BLACK);
 		DrawModelEx(this->thin_pipe, {2, 6, WALL_HEIGHT}, {0,0,1}, 90.0f, {1,4,1}, BLACK);
-		DrawModelEx(this->thin_pipe, {-2, 6, WALL_HEIGHT}, {1,0,0}, std::atan((WALL_HEIGHT - 0.5f) / 2.0f) * 180.0f / PI + 180, {1,std::hypot(2.0f, WALL_HEIGHT - 0.5f),1}, BLACK);
-		DrawModelEx(this->thin_pipe, {2, 6, WALL_HEIGHT}, {1,0,0}, std::atan((WALL_HEIGHT - 0.5f) / 2.0f) * 180.0f / PI + 180, {1,std::hypot(2.0f, WALL_HEIGHT - 0.5f),1}, BLACK);
+		DrawModelEx(this->thin_pipe, {-2, 6, WALL_HEIGHT}, {1,0,0}, NET_ANGLE * 180.0f / PI + 180, {1,std::hypot(2.0f, WALL_HEIGHT - 0.5f),1}, BLACK);
+		DrawModelEx(this->thin_pipe, {2, 6, WALL_HEIGHT}, {1,0,0}, NET_ANGLE * 180.0f / PI + 180, {1,std::hypot(2.0f, WALL_HEIGHT - 0.5f),1}, BLACK);
+		for (unsigned char net_x_index = 0; net_x_index < NET_SIZE.x; net_x_index++) {
+			const float x_position = -2 + (NET_SPACING_X * (net_x_index + 1));
+			DrawLine3D({x_position, 4, 0.5f}, {x_position, 6, WALL_HEIGHT}, BLUE);
+		}
+		for (unsigned char net_y_index = 0; net_y_index < NET_SIZE.y; net_y_index++) {
+			const float y_position = 6 - (std::cos(NET_ANGLE) * NET_SPACING_Y) * (net_y_index + 1);
+			const float z_position = WALL_HEIGHT - (std::sin(NET_ANGLE) * NET_SPACING_Y) * (net_y_index + 1);
+			DrawLine3D({-2, y_position, z_position}, {2, y_position, z_position}, BLUE);
+		}
 	}
 
 	void render() {

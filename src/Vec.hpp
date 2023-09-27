@@ -18,6 +18,16 @@ using Vecnf = Vec<DIMENSIONS, float>;
 template<const unsigned char DIMENSIONS>
 using Vecnd = Vec<DIMENSIONS, double>;
 
+template<typename T>
+using Vec2 = Vec<2, T>;
+template<typename T>
+using Vec2 = Vec<2, T>;
+
+template<typename T>
+using Vec3 = Vec<3, T>;
+template<typename T>
+using Vec3 = Vec<3, T>;
+
 using Vec2f = Vec<2, float>;
 using Vec3f = Vec<3, float>;
 
@@ -31,7 +41,8 @@ class Vec<2, T> {
     T y;
 
     Vec() {    }
-    Vec(const T x, const T y): x(x), y(y) {    }
+    constexpr Vec(const T x, const T y): x(x), y(y) {    }
+    // Vec(const T x, const T y): x(x), y(y) {    }
 
     explicit Vec(const Vector2 vector): x(vector.x), y(vector.y) {    }
 

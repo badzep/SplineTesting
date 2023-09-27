@@ -1,6 +1,7 @@
 #pragma once
 
 
+#include "Vec.hpp"
 #include <raylib.h>
 #include <string>
 
@@ -51,3 +52,8 @@ constexpr float ROBOT_NODE_HEIGHT = ROBOT_HEIGHT + NODE_SIZE;
 
 constexpr float WALL_HEIGHT = mm_to_feet(300.0f);
 constexpr float GOAL_ELEVATION = 0.5f;
+
+constexpr float NET_SPACING_X = 4.0f / 20.0f;
+const float NET_SPACING_Y = std::hypot(2.0f, WALL_HEIGHT - 0.5f) / 10.0f;
+constexpr Vec2<unsigned char> NET_SIZE = {20, 10};
+const static float NET_ANGLE = std::atan((WALL_HEIGHT - 0.5f) / 2.0f);
