@@ -17,7 +17,6 @@ enum class SplineMethod {
 	BEZIER,
 	CARDINAL,
 	CATMULL_ROM,
-	// BASIS // no
 };
 
 // /**
@@ -346,7 +345,7 @@ public:
 	float max_velocity;
 	float max_acceleration;
 
-	TestRobot(const float max_velocity, const float max_acceleration): max_velocity(max_velocity), max_acceleration(max_acceleration) {
+	TestRobot(const Vec3f size, const float max_velocity, const float max_acceleration): size(size), max_velocity(max_velocity), max_acceleration(max_acceleration) {
 
 	}
 };

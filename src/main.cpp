@@ -96,7 +96,7 @@ int main() {
 
     Field<2> field2d;
     Field<3> field3d;
-    TestRobot robot = TestRobot(5, 20);
+    TestRobot robot = TestRobot({ROBOT_SIZE, ROBOT_SIZE, ROBOT_HEIGHT}, 5, 20);
     while (!WindowShouldClose()) {
         if (current_time == 0 or current_time > spline.total_duration) {
             current_time = 0;

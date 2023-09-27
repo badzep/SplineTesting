@@ -255,11 +255,11 @@ public:
 		        const Vec2f velocity = spline_chain.get_tangent_at(time);
 		        const Vec2f acceleration = spline_chain.get_tangent_slope_at(time);
 
-		        DrawPolyField(position, 4, ROBOT_SIZE / 2.0f, (velocity.atan2() / PI) * 180 + 45, {200, 10, 200, 175});
+		        draw_spline_chain<2>(spline_chain, robot.max_velocity, robot.max_acceleration);
+
+		        DrawRectangleField(position, {robot.size.x, robot.size.y}, (velocity.atan2() / PI) * 180.0f + 90.0f, ROBOT_COLOR);
 		        DrawLineField(position, position.add(velocity.multiply(VELOCITY_DISPLAY_MULTIPLIER)), 0.025f, BLUE);
 		        DrawLineField(position.add(velocity * VELOCITY_DISPLAY_MULTIPLIER), position.add(velocity  * VELOCITY_DISPLAY_MULTIPLIER).add(acceleration * ACCELERATION_DISPLAY_MULTIPLIER), 0.025, GREEN);
-
-				draw_spline_chain<2>(spline_chain, robot.max_velocity, robot.max_acceleration);
 			EndMode2D();
 
 			DrawFPS(WINDOW.x * 0.9f, WINDOW.y * 0.05f);
@@ -452,7 +452,7 @@ public:
 				this->render_points(spline_chain);
                 draw_spline_polynomial<3>(this->test_spline, robot.max_velocity, robot.max_acceleration);
 
-                DrawModelEx(this->robot_model, robot.position.to_3d(ROBOT_HEIGHT / 2.0f).to_raylib(),{0,0,1}, (robot.velocity.atan2() / PI) * 180, {1,1,1}, {200, 0, 0, 175});
+                DrawModelEx(this->robot_model, robot.position.to_3d(ROBOT_HEIGHT / 2.0f).to_raylib(),{0,0,1}, (robot.velocity.atan2() / PI) * 180, robot.size.to_raylib(), ROBOT_COLOR);
                 DrawLine3D(robot.position.to_3d(ROBOT_NODE_HEIGHT).to_raylib(), robot.position.add(robot.velocity.multiply(VELOCITY_DISPLAY_MULTIPLIER)).to_3d(ROBOT_NODE_HEIGHT).to_raylib(), BLUE);
                 DrawLine3D(robot.position.add(robot.velocity * VELOCITY_DISPLAY_MULTIPLIER).to_3d(ROBOT_NODE_HEIGHT).to_raylib(), robot.position.add(robot.velocity * VELOCITY_DISPLAY_MULTIPLIER).add(robot.acceleration * ACCELERATION_DISPLAY_MULTIPLIER).to_3d(ROBOT_NODE_HEIGHT).to_raylib(), GREEN);
 

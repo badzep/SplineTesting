@@ -11,7 +11,7 @@ Red = above max speed and acceleration
 
 
 ## Controls
-
+Tab = Switch mode
 P = print out the spline parameters
 
 2D Mode:
