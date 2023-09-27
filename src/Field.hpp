@@ -410,7 +410,6 @@ public:
 	}
 
 	void render_points(const SplineChain<SplineMethod::HERMITE, 2, float>& spline_chain) {
-
 		int duration_index = -1;
         for (unsigned int point_index = 0; point_index < spline_chain.points.size(); point_index++) {
             Vec2f position = spline_chain.points[point_index];

@@ -83,7 +83,7 @@ int main() {
     setup_spline();
 
     if (spline.splines.size() <= 1) {
-        throw std::runtime_error("Spilne must have at least 2 points\n");
+        throw std::runtime_error("Spline must have at least 2 points\n");
         return 0;
     }
 
