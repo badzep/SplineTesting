@@ -7,19 +7,7 @@
 
 static bool paused = false;
 static float current_time = 0;
-static float current_position = 0;
 static Font font;
-static Hermite2f spline = Hermite2f({}, {});
-static Vec2f test_position;
-static Vec2f test_velocity;
-//static Cardinal2f spline = Cardinal2f({});
-
-static void reset() {
-	current_time = 0;
-	current_position = 0;
-    test_position = spline.points[0];
-    test_velocity = spline.tangents[0];
-}
 
 inline void DrawLineField(const Vec2f start, const Vec2f end, const float thickness, const Color color) {
     DrawLineEx(start.field_to_screen().to_raylib(), end.field_to_screen().to_raylib(), thickness, color);

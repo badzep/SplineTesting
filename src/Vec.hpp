@@ -34,7 +34,7 @@ using Vec3f = Vec<3, float>;
 using Vec2d = Vec<2, double>;
 using Vec3d = Vec<3, double>;
 
-template<class T>
+template<typename T>
 class Vec<2, T> {
     public:
     T x;

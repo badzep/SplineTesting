@@ -39,13 +39,13 @@ public:
 	Vec<DIMENSIONS, T> end_tangent;
 
 	BernsteinSpline(const T start_time, const T end_time, const Vec<DIMENSIONS, T> start_point, const Vec<DIMENSIONS, T> start_tangent, const Vec<DIMENSIONS, T> end_point, const Vec<DIMENSIONS, T> end_tangent) {}
-	static Vec<DIMENSIONS, T> get_point_at(const T start_time, const T end_time, const Vec<DIMENSIONS, T> start_point, const Vec<DIMENSIONS, T> start_tangent, const Vec<DIMENSIONS, T> end_point, const Vec<DIMENSIONS, T> end_tangent) {
-   		// TODO
+	static Vec<DIMENSIONS, T> get_point_at(const T time) {
+   		
 	}
-	static Vec<DIMENSIONS, T> get_tangent_at(const T duration, const Vec<DIMENSIONS, T> start_point, const Vec<DIMENSIONS, T> start_tangent, const Vec<DIMENSIONS, T> end_point, const Vec<DIMENSIONS, T> end_tangent) {
+	static Vec<DIMENSIONS, T> get_tangent_at(const T time) {
 
 	}
-	static Vec<DIMENSIONS, T> get_tangent_slope_at(const T duration, const Vec<DIMENSIONS, T> start_point, const Vec<DIMENSIONS, T> start_tangent, const Vec<DIMENSIONS, T> end_point, const Vec<DIMENSIONS, T> end_tangent) {
+	static Vec<DIMENSIONS, T> get_tangent_slope_at(const T time) {
 
 	}
 };
@@ -100,6 +100,8 @@ public:
 	}
 };
 
+
+
 using Spline2f = SplinePolynomial<2, float>;
 using Spline2d = SplinePolynomial<2, double>;
 
@@ -140,6 +142,10 @@ public:
     [[nodiscard]] Vec<DIMENSIONS, T> get_tangent_slope_at(const float time) const {
 	 	return this->get_spline_at(time).get_tangent_slope_at(time);
 	 }
+
+	virtual void print_parameters() {
+		printf("Not yet implemented\n");
+	}
 };
 
 static std::string get_data_type(const int size) {
@@ -164,6 +170,8 @@ public:
 	std::vector<Vec<DIMENSIONS, T>> points;
 	std::vector<Vec<DIMENSIONS, T>> tangents;
     std::vector<T> durations;
+
+    SplineChain() {}
 
     SplineChain(const Vec<DIMENSIONS, T> point, const Vec<DIMENSIONS, T> tangent) {
         this->points.push_back(point);
@@ -213,6 +221,8 @@ public:
     std::vector<T> durations;
     std::vector<T> scales;
 
+    SplineChain() {}
+
     SplineChain(const Vec<DIMENSIONS, T> point) {
         this->points.push_back(point);
     }
@@ -226,13 +236,28 @@ public:
 	void build() {
 		this->total_duration = 0;
 		this->splines.clear();
-		for (unsigned int i = 1; i < this->points.size() - 1; i++) {
+		{
+			const Vec<DIMENSIONS, T> point0 = this->points[0] - (this->points[1] - this->points[0]);
+			const Vec<DIMENSIONS, T> point1 = this->points[0];
+			const Vec<DIMENSIONS, T> point2 = this->points[1];
+			const Vec<DIMENSIONS, T> point3 = this->points[2];
+            this->add_spline(SplinePolynomial<DIMENSIONS, T>::cardinal_factory(this->total_duration, this->total_duration + this->durations[0], this->scales[0], point0, point1, point2, point3));
+		}
+		for (unsigned int i = 1; i < this->points.size() - 2; i++) {
 			const Vec<DIMENSIONS, T> point0 = this->points[i - 1];
 			const Vec<DIMENSIONS, T> point1 = this->points[i];
 			const Vec<DIMENSIONS, T> point2 = this->points[i + 1];
 			const Vec<DIMENSIONS, T> point3 = this->points[i + 2];
-			const T scale = this->scales[i];
             this->add_spline(SplinePolynomial<DIMENSIONS, T>::cardinal_factory(this->total_duration, this->total_duration + this->durations[i], this->scales[i], point0, point1, point2, point3));
+		}
+
+		{
+			const unsigned int last_index = this->points.size() - 1;
+			const Vec<DIMENSIONS, T> point0 = this->points[last_index - 2];
+			const Vec<DIMENSIONS, T> point1 = this->points[last_index - 1];
+			const Vec<DIMENSIONS, T> point2 = this->points[last_index];
+			const Vec<DIMENSIONS, T> point3 = this->points[last_index] - (this->points[last_index] - this->points[last_index - 1]);
+            this->add_spline(SplinePolynomial<DIMENSIONS, T>::cardinal_factory(this->total_duration, this->total_duration + this->durations[last_index - 1], this->scales[last_index - 1], point0, point1, point2, point3));
 		}
 	}
 
@@ -258,6 +283,8 @@ public:
 	std::vector<Vec<DIMENSIONS, T>> points;
     std::vector<T> durations;
 
+    SplineChain() {}
+    
     SplineChain(const Vec<DIMENSIONS, T> point) {
         this->points.push_back(point);
     }
@@ -270,12 +297,28 @@ public:
 	void build() {
 		this->total_duration = 0;
 		this->splines.clear();
-		for (unsigned int i = 1; i < this->points.size() - 1; i++) {
+		{
+			const Vec<DIMENSIONS, T> point0 = this->points[0] - (this->points[1] - this->points[0]);
+			const Vec<DIMENSIONS, T> point1 = this->points[0];
+			const Vec<DIMENSIONS, T> point2 = this->points[1];
+			const Vec<DIMENSIONS, T> point3 = this->points[2];
+            this->add_spline(SplinePolynomial<DIMENSIONS, T>::catmull_rom_factory(this->total_duration, this->total_duration + this->durations[0], point0, point1, point2, point3));
+		}
+		for (unsigned int i = 1; i < this->points.size() - 2; i++) {
 			const Vec<DIMENSIONS, T> point0 = this->points[i - 1];
 			const Vec<DIMENSIONS, T> point1 = this->points[i];
 			const Vec<DIMENSIONS, T> point2 = this->points[i + 1];
 			const Vec<DIMENSIONS, T> point3 = this->points[i + 2];
             this->add_spline(SplinePolynomial<DIMENSIONS, T>::catmull_rom_factory(this->total_duration, this->total_duration + this->durations[i], point0, point1, point2, point3));
+		}
+
+		{
+			const unsigned int last_index = this->points.size() - 1;
+			const Vec<DIMENSIONS, T> point0 = this->points[last_index - 2];
+			const Vec<DIMENSIONS, T> point1 = this->points[last_index - 1];
+			const Vec<DIMENSIONS, T> point2 = this->points[last_index];
+			const Vec<DIMENSIONS, T> point3 = this->points[last_index] - (this->points[last_index] - this->points[last_index - 1]);
+            this->add_spline(SplinePolynomial<DIMENSIONS, T>::catmull_rom_factory(this->total_duration, this->total_duration + this->durations[last_index - 1], point0, point1, point2, point3));
 		}
 	}
 
@@ -294,3 +337,16 @@ using CatmullRom3f = SplineChain<SplineMethod::CATMULL_ROM, 3, float>;
 using CatmullRom2d = SplineChain<SplineMethod::CATMULL_ROM, 2, double>;
 using CatmullRom3d = SplineChain<SplineMethod::CATMULL_ROM, 3, double>;
 
+class TestRobot {
+public:
+	Vec2f position;
+	Vec2f velocity;
+	Vec2f acceleration;
+	Vec3f size;
+	float max_velocity;
+	float max_acceleration;
+
+	TestRobot(const float max_velocity, const float max_acceleration): max_velocity(max_velocity), max_acceleration(max_acceleration) {
+
+	}
+};
