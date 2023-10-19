@@ -21,13 +21,13 @@ void draw_spline_polynomial<2>(const SplinePolynomial<2, float>& test_spline, co
         bool overspeed = test_path_velocity.magnitude() > max_velocity;
         bool over_acceleration = test_path_acceleation.magnitude() > max_acceleration;
         if (overspeed and over_acceleration) {
-            DrawLineField(test_path_position, test_spline.get_point_at(test_path_time + PATH_INDEX_DELTA), 0.05f, RED);
+            DrawLineField(test_path_position, test_spline.get_point_at(test_path_time + PATH_INDEX_DELTA), 0.6f, RED);
         } else if (over_acceleration) {
-            DrawLineField(test_path_position, test_spline.get_point_at(test_path_time + PATH_INDEX_DELTA), 0.04f, ORANGE);
+            DrawLineField(test_path_position, test_spline.get_point_at(test_path_time + PATH_INDEX_DELTA), 0.48f, ORANGE);
         } else if (overspeed) {
-            DrawLineField(test_path_position, test_spline.get_point_at(test_path_time + PATH_INDEX_DELTA), 0.04f, YELLOW);
+            DrawLineField(test_path_position, test_spline.get_point_at(test_path_time + PATH_INDEX_DELTA), 0.48f, YELLOW);
         } else {
-            DrawLineField(test_path_position, test_spline.get_point_at(test_path_time + PATH_INDEX_DELTA), 0.03f, PATH_COLOR);
+            DrawLineField(test_path_position, test_spline.get_point_at(test_path_time + PATH_INDEX_DELTA), 0.36f, PATH_COLOR);
         }
         test_path_time += PATH_INDEX_DELTA;
         if (test_path_time + PATH_INDEX_DELTA >= test_spline.end_time) {
@@ -43,8 +43,8 @@ void draw_spline_polynomial<3>(const SplinePolynomial<2, float>& test_spline, co
         Vec2f test_path_position = test_spline.get_point_at(test_path_time);
         Vec2f test_path_velocity = test_spline.get_tangent_at(test_path_time);
         Vec2f test_path_acceleation = test_spline.get_tangent_slope_at(test_path_time);
-        bool overspeed = test_path_velocity.magnitude() > MAX_VELOCITY;
-        bool over_acceleration = test_path_acceleation.magnitude() > MAX_ACCELERATION;
+        bool overspeed = test_path_velocity.magnitude() > max_velocity;
+        bool over_acceleration = test_path_acceleation.magnitude() > max_acceleration;
         if (overspeed and over_acceleration) {
             DrawLine3D(test_path_position.to_3d(PATH_HEIGHT).to_raylib(), test_spline.get_point_at(test_path_time + PATH_INDEX_DELTA).to_3d(PATH_HEIGHT).to_raylib(), RED);
         } else if (over_acceleration) {

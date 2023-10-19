@@ -13,6 +13,7 @@ Red = above max speed and acceleration
 ## Controls
 Tab = Switch mode
 P = print out the spline parameters
+Numbers 1-4 set the target frame rate
 
 2D Mode:
 
@@ -24,4 +25,4 @@ P = print out the spline parameters
 
 	Mouse or arrow keys to look around
 
-*Note: all distances are in feet and times in seconds
+*Note: all distances are in inches and times in seconds

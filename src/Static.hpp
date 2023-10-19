@@ -23,7 +23,6 @@ inline void DrawPolyField(const Vec2f position, const int sides, const float rad
 }
 
 inline void DrawRectangleField(const Vec2f position, const Vec2f size, const float rotation, const Color color) {
-	// DrawRectanglePro({position.subtract(size.divide(2)).field_to_screen().x, position.subtract(size.divide(2)).field_to_screen().y, size.x, size.y}, size.divide(2).to_raylib(), -rotation, color);
 	DrawRectanglePro({position.field_to_screen().x, position.field_to_screen().y, size.x, size.y}, size.divide(2).to_raylib(), -rotation, color);
 }
 
