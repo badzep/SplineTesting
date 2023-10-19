@@ -1,4 +1,3 @@
-#include <cstdio>
 #include <raylib.h>
 #include <stdexcept>
 
@@ -19,6 +18,10 @@ Mode mode = Mode::TWO_DIMENSIONAL;
 Hermite2f spline;
 
 void setup_spline() {
+//    spline = SplineChain<SplineMethod::HERMITE, 2, float>({0,0}, {0,0});
+//    spline.add_point({40.0f/12.0f,20.0f/12.0f}, {10.0f/12.0f, 5.0f/12.0f}, 3.0f);
+//    spline.build();
+
     spline = SplineChain<SplineMethod::HERMITE, 2, float>({4.025, 3}, {-4.1, 0.0999994});
     spline.add_point({-0.0124998, 2.8}, {-3.95, 0.0500002}, 1.00022);
     spline.add_point({-4.00399, 2.99458}, {-3.93404, -0.0283194}, 0.89988);
@@ -49,8 +52,6 @@ void input() {
             ShowCursor();
             EnableCursor();
         }
-
-        printf("mode %i\n", mode);
     }
 
     if (IsKeyPressed(KEY_SPACE)) {
@@ -82,9 +83,8 @@ void input() {
 int main() {
     setup_spline();
 
-    if (spline.splines.size() <= 1) {
+    if (spline.splines.empty()) {
         throw std::runtime_error("Spline must have at least 2 points\n");
-        return 0;
     }
 
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);

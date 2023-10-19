@@ -10,16 +10,10 @@ constexpr float mm_to_feet(const float feet) {
 	return feet * 0.0032808f;
 }
 
-
-constexpr float BASE_DURATION_EDIT_MULTIPLIER = 0.25f;
-constexpr float SPRINT_DURATION_EDIT_MULTIPLIER = BASE_DURATION_EDIT_MULTIPLIER * 10;
-
 constexpr Vector2 WINDOW = {1000, 1000};
 constexpr float DURATION_DISPLAY_MULTIPLIER = 0.6f;
 constexpr float VELOCITY_DISPLAY_MULTIPLIER = 0.25f;
 constexpr float ACCELERATION_DISPLAY_MULTIPLIER = 0.05f;
-
-constexpr float MINIMUM_SPLINE_DURATION = 0.25f;
 
 constexpr Color PATH_COLOR = {10, 200, 100, 200};
 

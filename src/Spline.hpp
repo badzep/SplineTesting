@@ -11,44 +11,12 @@
 #include "Vec.hpp"
 
 
-
 enum class SplineMethod {
 	HERMITE,
 	BEZIER,
 	CARDINAL,
 	CATMULL_ROM,
 };
-
-// /**
-//  * More efficient if only using spline once
-//  */
-// template<const SplineMethod SPLINE, const unsigned char DIMENSIONS, typename T>
-// class BernsteinSpline {
-
-// };
-
-// template<const unsigned char DIMENSIONS, typename T>
-// class BernsteinSpline<SplineMethod::HERMITE, DIMENSIONS, T> {
-// public:
-// 	T start_time;
-// 	T end_time;
-// 	Vec<DIMENSIONS, T> start_point;
-// 	Vec<DIMENSIONS, T> start_tangent;
-// 	Vec<DIMENSIONS, T> end_point;
-// 	Vec<DIMENSIONS, T> end_tangent;
-
-// 	BernsteinSpline(const T start_time, const T end_time, const Vec<DIMENSIONS, T> start_point, const Vec<DIMENSIONS, T> start_tangent, const Vec<DIMENSIONS, T> end_point, const Vec<DIMENSIONS, T> end_tangent) {}
-// 	static Vec<DIMENSIONS, T> get_point_at(const T time) {
-   		
-// 	}
-// 	static Vec<DIMENSIONS, T> get_tangent_at(const T time) {
-
-// 	}
-// 	static Vec<DIMENSIONS, T> get_tangent_slope_at(const T time) {
-
-// 	}
-// };
-
 
 template<const unsigned char DIMENSIONS, typename T>
 class SplinePolynomial {
@@ -339,6 +307,8 @@ using CatmullRom3d = SplineChain<SplineMethod::CATMULL_ROM, 3, double>;
 class TestRobot {
 public:
 	Vec2f position;
+//    float heading;
+//    float velocity;
 	Vec2f velocity;
 	Vec2f acceleration;
 	Vec3f size;

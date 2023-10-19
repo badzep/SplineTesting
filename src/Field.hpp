@@ -29,9 +29,7 @@ public:
     	camera.offset = {(float) WINDOW.x / 2.0f, (float) WINDOW.y / 2.0f};
 	}
 
-	~Field() {
-
-	}
+	~Field() {}
 
 	void reset(float& time, Chain<2, float> spline_chain,TestRobot& robot) {
 		time = 0;
@@ -288,7 +286,7 @@ public:
 		camera.fovy = 60;
 		camera.up = {0.0f, 0.0f, 1.0f};
 		camera.position = {0, 0, 8};
-		camera.target = {0.1f, 0, 1};
+		camera.target = {0.1f, 0, 1.0f};
 
     	this->field_model = LoadModelFromMesh(GenMeshCube(GRID_SIZE * 2.0f, GRID_SIZE * 2.0f, 1.0f));
 		this->robot_model = LoadModelFromMesh(GenMeshCube(ROBOT_SIZE, ROBOT_SIZE, ROBOT_HEIGHT));
@@ -313,10 +311,10 @@ public:
 
 		const float end_time = spline_chain.get_spline_at(time).end_time;
 	    const Vec2f start_point = robot.position;
-	    const Vec2f start_tangent = robot.velocity * (end_time - current_time);
+	    const Vec2f start_tangent = robot.velocity * (end_time - time);
 	    const Vec2f end_point = spline_chain.get_point_at(end_time);
-	    const Vec2f end_tangent = spline_chain.get_tangent_at(end_time) * (end_time - current_time);
-	    this->test_spline = SplinePolynomial<2, float>::hermite_factory(current_time, end_time, start_point, start_tangent, end_point, end_tangent);
+	    const Vec2f end_tangent = spline_chain.get_tangent_at(end_time) * (end_time - time);
+	    this->test_spline = SplinePolynomial<2, float>::hermite_factory(time, end_time, start_point, start_tangent, end_point, end_tangent);
 
 	    robot.acceleration = this->test_spline.get_tangent_slope_at(time);
 	   	robot.acceleration.range_in_place(MAX_ACCELERATION, -MAX_ACCELERATION);
@@ -332,8 +330,8 @@ public:
 	        	DrawLine3D({-(float) GRID_SIZE, (float) i, GRID_HEIGHT}, {(float)GRID_SIZE, (float) i, GRID_HEIGHT}, {255,255,255,200});
 	        	DrawLine3D({(float) i, -(float) GRID_SIZE, GRID_HEIGHT}, {(float) i, (float) GRID_SIZE, GRID_HEIGHT}, {255,255,255,200});
 	        } else {
-	        	DrawLine3D({-(float) GRID_SIZE, (float) i, GRID_HEIGHT}, {(float)GRID_SIZE, (float) i, GRID_HEIGHT}, {255,255,255,125});
-	            DrawLine3D({(float) i, -(float) GRID_SIZE, GRID_HEIGHT}, {(float) i, (float) GRID_SIZE, GRID_HEIGHT}, {255,255,255,125});
+	        	DrawLine3D({-(float) GRID_SIZE, (float) i, GRID_HEIGHT}, {(float)GRID_SIZE, (float) i, GRID_HEIGHT}, {255,255,255,50});
+	            DrawLine3D({(float) i, -(float) GRID_SIZE, GRID_HEIGHT}, {(float) i, (float) GRID_SIZE, GRID_HEIGHT}, {255,255,255,50});
 	        }
 	    }
 

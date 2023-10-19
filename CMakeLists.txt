@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.26)
+cmake_minimum_required(VERSION 3.25.2)
 project(SplineTesting)
 set(CMAKE_CXX_STANDARD 20)
 
@@ -26,6 +26,10 @@ set(PROJECT_INCLUDE "${CMAKE_CURRENT_LIST_DIR}/src/") # Define PROJECT_INCLUDE t
 add_executable(${PROJECT_NAME}
         src/Constants.hpp
         src/Spline.hpp
+        src/PID.hpp
+        src/Timer.hpp
+        src/Timer.cpp
+        src/Controllers.hpp
 )
 target_sources(${PROJECT_NAME} PRIVATE ${PROJECT_SOURCES})
 target_include_directories(${PROJECT_NAME} PRIVATE ${PROJECT_INCLUDE})
