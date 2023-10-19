@@ -30,6 +30,7 @@ add_executable(${PROJECT_NAME}
         src/Timer.hpp
         src/Timer.cpp
         src/Controllers.hpp
+        src/Camera.hpp
 )
 target_sources(${PROJECT_NAME} PRIVATE ${PROJECT_SOURCES})
 target_include_directories(${PROJECT_NAME} PRIVATE ${PROJECT_INCLUDE})

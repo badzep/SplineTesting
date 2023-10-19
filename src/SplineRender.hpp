@@ -21,13 +21,13 @@ void draw_spline_polynomial<2>(const SplinePolynomial<2, float>& test_spline, co
         bool overspeed = test_path_velocity.magnitude() > max_velocity;
         bool over_acceleration = test_path_acceleation.magnitude() > max_acceleration;
         if (overspeed and over_acceleration) {
-            DrawLineField(test_path_position, test_spline.get_point_at(test_path_time + PATH_INDEX_DELTA), 0.05f * 12.0f, RED);
+            DrawLineField(test_path_position, test_spline.get_point_at(test_path_time + PATH_INDEX_DELTA), 0.6f, RED);
         } else if (over_acceleration) {
-            DrawLineField(test_path_position, test_spline.get_point_at(test_path_time + PATH_INDEX_DELTA), 0.04f * 12.0f, ORANGE);
+            DrawLineField(test_path_position, test_spline.get_point_at(test_path_time + PATH_INDEX_DELTA), 0.48f, ORANGE);
         } else if (overspeed) {
-            DrawLineField(test_path_position, test_spline.get_point_at(test_path_time + PATH_INDEX_DELTA), 0.04f * 12.0f, YELLOW);
+            DrawLineField(test_path_position, test_spline.get_point_at(test_path_time + PATH_INDEX_DELTA), 0.48f, YELLOW);
         } else {
-            DrawLineField(test_path_position, test_spline.get_point_at(test_path_time + PATH_INDEX_DELTA), 0.03f * 12.0f, PATH_COLOR);
+            DrawLineField(test_path_position, test_spline.get_point_at(test_path_time + PATH_INDEX_DELTA), 0.36f, PATH_COLOR);
         }
         test_path_time += PATH_INDEX_DELTA;
         if (test_path_time + PATH_INDEX_DELTA >= test_spline.end_time) {
